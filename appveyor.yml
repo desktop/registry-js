@@ -20,5 +20,6 @@ install:
   - npm install -g yarn@1.3.2
   - yarn install --force
 
-test_script:
+# TODO: move this to test_script after we have actual code to work with
+build_script:
   - ./script/test-appveyor.bat
