@@ -2,8 +2,9 @@
   "name": "lean-mean-registry-client",
   "version": "1.0.0",
   "description": "A simple and opinionated library for interacting with the Windows registry",
-  "main": "index.js",
+  "main": "build/lib/index.js",
   "scripts": {
+    "build": "tsc",
     "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "repository": {
@@ -23,7 +24,11 @@
     "@types/node": "^8.0.53",
     "chai": "^4.1.2",
     "mocha": "^4.0.1",
+    "prettier": "^1.8.2",
     "ts-node": "^3.3.0",
     "typescript": "^2.6.1"
+  },
+  "dependencies": {
+    "nan": "^2.8.0"
   }
 }
