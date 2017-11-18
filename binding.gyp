@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'lean-mean-registry',
+      'target_name': 'registryNativeModule',
       'include_dirs': [ '<!(node -e "require(\'nan\')")' ],
       'conditions': [
         ['OS=="win"', {
