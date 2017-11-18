@@ -1,7 +1,8 @@
 import { expect } from 'chai'
+import { helloWorld } from '../lib/index'
 
 describe('a simple test', () => {
-  it('does something boring', () => {
-    expect(true).to.be.true
+  it('can read a string from native code', () => {
+    expect(helloWorld()).to.equal('Hello world!')
   })
 })
