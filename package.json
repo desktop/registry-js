@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description":
     "A simple and opinionated library for interacting with the Windows registry",
-  "main": "build/lib/index.js",
+  "main": "dist/lib/index.js",
   "scripts": {
     "build": "tsc",
     "test": "mocha --require ts-node/register test/**/*.ts",

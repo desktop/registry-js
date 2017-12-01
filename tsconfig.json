@@ -8,7 +8,7 @@
       "noUnusedLocals": true,
       "strict": true,
       "sourceMap": true,
-      "outDir": "./build",
+      "outDir": "./dist",
       "declaration": true,
       "types" : [ "mocha", "node" ],
       "typeRoots": [ "./node_modules/@types" ]
