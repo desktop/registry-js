@@ -22,6 +22,15 @@ v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, char *data) {
   return obj;
 }
 
+v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data) {
+  auto obj = Nan::New<v8::Object>();
+  obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(name).ToLocalChecked());
+  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
+  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New((INT32)data));
+  return obj;
+}
+
+
 NAN_METHOD(ReadValues) {
   if (info.Length() < 2) {
     Nan::ThrowTypeError("Wrong number of arguments");
@@ -119,11 +128,28 @@ NAN_METHOD(ReadValues) {
         auto text = (char *)buffer;
         auto obj = CreateEntry(achValue, "REG_SZ", text);
         Nan::Set(a, i, obj);
-      }
-      if (lpType == REG_EXPAND_SZ) {
+      } else if (lpType == REG_EXPAND_SZ) {
         auto text = (char *)buffer;
         auto obj = CreateEntry(achValue, "REG_EXPAND_SZ", text);
         Nan::Set(a, i, obj);
+      } else if (lpType == REG_DWORD) {
+
+        // NOTE:
+        // at this point the value in buffer looks like this: '\x124242'
+        // i haven't figured out an easy way to parse this, so I'm going to make
+        // a second call because I know I can get the value out in the correct
+        // format in this way and avoid messing with strings
+
+        DWORD type = REG_DWORD;
+        DWORD cbData;
+        unsigned long size = 1024;
+
+        LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &type, (LPBYTE)&cbData, &size);
+        if (ERROR_SUCCESS == nError)
+        {
+          auto obj = CreateEntry(achValue, "REG_DWORD", cbData);
+          Nan::Set(a, i, obj);
+        }
       }
     }
     else if (retCode != ERROR_NO_MORE_ITEMS)
