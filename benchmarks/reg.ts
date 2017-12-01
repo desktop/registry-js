@@ -1,6 +1,6 @@
 const Benchmark = require('benchmark')
 import { spawn } from 'child_process'
-import { enumerateValues, HKEY } from '../build/lib/index'
+import { enumerateValues, HKEY } from '../dist/lib/index'
 
 const suite = new Benchmark.Suite()
 
