@@ -29,7 +29,7 @@ After exploring other options like invoking PowerShell - which was too slow - we
 decided to write our own little library to do the stuff we require by invoking
 the Win32 APIs directly.
 
-## Scenarios, not Emulation
+## Usage, Not Feature Parity
 
 This project isn't about implementing a 1-1 replication of the Windows registry
 API. Instead, this should be about implementing just what you need to do, and
