@@ -98,7 +98,7 @@ NAN_METHOD(ReadValues) {
     cchValue = MAX_VALUE_NAME;
     achValue[0] = '\0';
 
-    DWORD lpType, lpcbData;
+    DWORD lpType;
     DWORD cbData = cbMaxValueData;
     auto buffer = new byte[cbMaxValueData];
 
