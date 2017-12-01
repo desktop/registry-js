@@ -1,0 +1,14 @@
+# ignore everything that's version controlled
+.vscode
+benchmarks/
+lib/
+script/
+src/
+test/
+.gitattributes
+appveyor.yml
+tsconfig.json
+
+# just include these specific artifacts
+# everything else should be transpiled
+!build/lib/*
