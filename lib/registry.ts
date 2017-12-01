@@ -42,8 +42,14 @@ export type RegistryStringEntry = {
   readonly data: string
 }
 
+export type RegistryNumberEntry = {
+  readonly name: string
+  readonly type: RegistryValueType.REG_DWORD
+  readonly data: number
+}
+
 // TODO: define some other shapes of data
-export type RegistryValue = RegistryStringEntry
+export type RegistryValue = RegistryStringEntry | RegistryNumberEntry
 
 export enum HKEY {
   HKEY_CLASSES_ROOT = 'HKEY_CLASSES_ROOT',
