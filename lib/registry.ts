@@ -1,20 +1,9 @@
-import * as Path from 'path'
-
-const productionFullPath = Path.join(
-  __dirname,
-  '../Release/registryNativeModule.node'
-)
-
-const developmentFullPath = Path.join(
-  __dirname,
-  '../build/Release/registryNativeModule.node'
-)
-
 let nativeModule: any | null = null
+
 try {
-  nativeModule = require(Path.resolve(productionFullPath))
+  nativeModule = require('../../build/Release/registryNativeModule.node')
 } catch {
-  nativeModule = require(Path.resolve(developmentFullPath))
+  nativeModule = require('../build/Release/registryNativeModule.node')
 }
 
 /**
