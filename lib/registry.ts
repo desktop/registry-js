@@ -37,9 +37,9 @@ export enum RegistryValueType {
 }
 
 export type RegistryStringEntry = {
-  readonly string: string
+  readonly name: string
   readonly type: RegistryValueType.REG_SZ
-  readonly value: string
+  readonly data: string
 }
 
 // TODO: define some other shapes of data
