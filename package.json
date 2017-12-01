@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha --require ts-node/register test/**/*.ts",
+    "prepare": "yarn build && yarn test",
     "benchmark": "ts-node benchmarks/reg.ts"
   },
   "repository": {
