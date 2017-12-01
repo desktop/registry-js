@@ -4,15 +4,17 @@ import { enumerateValues, HKEY } from '../lib/index'
 
 const suite = new Benchmark.Suite()
 
-const key = ''
-
 suite
   .add(
     'reg.exe',
     function(deferred: any) {
-      const proc = spawn('C:\\Windows\\System32\\reg.exe', ['QUERY', key], {
-        cwd: undefined,
-      })
+      const proc = spawn(
+        'C:\\Windows\\System32\\reg.exe',
+        ['QUERY', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion'],
+        {
+          cwd: undefined,
+        }
+      )
       proc.on('close', code => {
         deferred.resolve()
       })
@@ -29,8 +31,3 @@ suite
     console.log(String(event.target))
   })
   .run({ async: true })
-
-// logs:
-// => RegExp#test x 4,161,532 +-0.99% (59 cycles)
-// => String#indexOf x 6,139,623 +-1.00% (131 cycles)
-// => Fastest is String#indexOf
