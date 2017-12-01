@@ -23,6 +23,8 @@ describe('enumerateValue', () => {
       'SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting'
     )
 
+    console.log(`result: ${JSON.stringify(values)}`)
+
     const enableZip = values.find(v => v.name == 'EnableZip')
     expect(enableZip!.type).equals('REG_DWORD')
     expect(enableZip!.data).equals(1)
