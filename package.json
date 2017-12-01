@@ -5,7 +5,8 @@
   "main": "build/lib/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "mocha --require ts-node/register test/**/*.ts"
+    "test": "mocha --require ts-node/register test/**/*.ts",
+    "benchmark": "ts-node benchmarks/reg.ts"
   },
   "repository": {
     "type": "git",
@@ -13,20 +14,22 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/desktop/lean-mean-registry-client/issues"
   },
   "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
   "devDependencies": {
+    "@types/benchmark": "^1.0.31",
     "@types/chai": "^4.0.5",
     "@types/mocha": "^2.2.44",
     "@types/node": "^8.0.53",
+    "benchmark": "^2.1.4",
     "chai": "^4.1.2",
     "mocha": "^4.0.1",
     "prettier": "^1.8.2",
     "ts-node": "^3.3.0",
-    "typescript": "^2.6.1"
+    "typescript": "^2.6.2"
   },
   "dependencies": {
     "nan": "^2.8.0"
