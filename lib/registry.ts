@@ -1,4 +1,21 @@
-const nativeModule = require('../build/Release/registryNativeModule.node')
+import * as Path from 'path'
+
+const productionFullPath = Path.join(
+  __dirname,
+  '../Release/registryNativeModule.node'
+)
+
+const developmentFullPath = Path.join(
+  __dirname,
+  '../build/Release/registryNativeModule.node'
+)
+
+let nativeModule: any | null = null
+try {
+  nativeModule = require(Path.resolve(productionFullPath))
+} catch {
+  nativeModule = require(Path.resolve(developmentFullPath))
+}
 
 /**
  * Utility function used to achieve exhaustive type checks at compile time.
