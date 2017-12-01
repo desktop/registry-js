@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import { enumerateValuesSafe, HKEY } from '../lib/index'
+import { enumerateValues, HKEY } from '../lib/index'
 
-describe('enumerateValuesSafe', () => {
+describe('enumerateValue', () => {
   it('can read strings from the registry', () => {
-    const values = enumerateValuesSafe(
+    const values = enumerateValues(
       HKEY.HKEY_LOCAL_MACHINE,
       'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
     )
@@ -18,13 +18,17 @@ describe('enumerateValuesSafe', () => {
   })
 
   it('can read numbers from the registry', () => {
-    const values = enumerateValuesSafe(
+    const values = enumerateValues(
       HKEY.HKEY_LOCAL_MACHINE,
-      'SOFTWARE\\Microsoft\\ClipboardServer'
+      'SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting'
     )
 
-    const enableZip = values.find(v => v.name == 'MaxSizeAllowedInKBytes')
+    const enableZip = values.find(v => v.name == 'EnableZip')
     expect(enableZip!.type).equals('REG_DWORD')
-    expect(enableZip!.data).equals(5120)
+    expect(enableZip!.data).equals(1)
+
+    const serviceTimeout = values.find(v => v.name == 'ServiceTimeout')
+    expect(serviceTimeout!.type).equals('REG_DWORD')
+    expect(serviceTimeout!.data).equals(60000)
   })
 })
