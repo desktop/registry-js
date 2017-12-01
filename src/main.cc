@@ -52,7 +52,7 @@ NAN_METHOD(ReadValues) {
     &hCurrentKey);
 
   if (openKey != ERROR_SUCCESS) {
-    char* errorMessage;
+    char* errorMessage = NULL;
     sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Nan::ThrowTypeError(errorMessage);
     return;
@@ -128,7 +128,7 @@ NAN_METHOD(ReadValues) {
     }
     else if (retCode != ERROR_NO_MORE_ITEMS)
     {
-      char* errorMessage;
+      char* errorMessage = NULL;
       sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowTypeError(errorMessage);
     }
