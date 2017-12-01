@@ -101,6 +101,7 @@ NAN_METHOD(ReadValues) {
 
   if (cValues == 0) {
     info.GetReturnValue().Set(New<v8::Array>(0));
+    return;
   }
 
   Local<Array> a = New<v8::Array>(cValues);
