@@ -20,15 +20,11 @@ describe('enumerateValue', () => {
   it('can read numbers from the registry', () => {
     const values = enumerateValues(
       HKEY.HKEY_LOCAL_MACHINE,
-      'SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting'
+      'SOFTWARE\\Microsoft\\ClipboardServer'
     )
 
-    const enableZip = values.find(v => v.name == 'EnableZip')
+    const enableZip = values.find(v => v.name == 'MaxSizeAllowedInKBytes')
     expect(enableZip!.type).equals('REG_DWORD')
-    expect(enableZip!.data).equals(1)
-
-    const serviceTimeout = values.find(v => v.name == 'ServiceTimeout')
-    expect(serviceTimeout!.type).equals('REG_DWORD')
-    expect(serviceTimeout!.data).equals(60000)
+    expect(enableZip!.data).equals(5120)
   })
 })
