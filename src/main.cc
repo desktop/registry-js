@@ -66,16 +66,16 @@ NAN_METHOD(ReadValues) {
     return;
   }
 
-  TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name
-  DWORD    cchClassName = MAX_PATH;        // size of class string
-  DWORD    cSubKeys = 0;                   // number of subkeys
-  DWORD    cbMaxSubKey;                    // longest subkey size
-  DWORD    cchMaxClass;                    // longest class string
-  DWORD    cValues;                        // number of values for key
-  DWORD    cchMaxValue;                    // longest value name
-  DWORD    cbMaxValueData;                 // longest value data
+  TCHAR achClass[MAX_PATH] = TEXT("");  // buffer for class name
+  DWORD cchClassName = MAX_PATH;        // size of class string
+  DWORD cSubKeys = 0;                   // number of subkeys
+  DWORD cbMaxSubKey;                    // longest subkey size
+  DWORD cchMaxClass;                    // longest class string
+  DWORD cValues;                        // number of values for key
+  DWORD cchMaxValue;                    // longest value name
+  DWORD cbMaxValueData;                 // longest value data
 
-  TCHAR  achValue[MAX_VALUE_NAME];
+  TCHAR achValue[MAX_VALUE_NAME];
   DWORD cchValue = MAX_VALUE_NAME;
 
   auto retCode = RegQueryInfoKey(
@@ -143,7 +143,6 @@ NAN_METHOD(ReadValues) {
       }
       else if (lpType == REG_DWORD)
       {
-
         // NOTE:
         // at this point the value in buffer looks like this: '\x124242'
         // i haven't figured out an easy way to parse this, so I'm going to make
