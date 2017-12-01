@@ -30,7 +30,6 @@ v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data) {
   return obj;
 }
 
-
 NAN_METHOD(ReadValues) {
   if (info.Length() < 2) {
     Nan::ThrowTypeError("Wrong number of arguments");
@@ -54,7 +53,7 @@ NAN_METHOD(ReadValues) {
   LONG openKey;
 
   openKey = RegOpenKeyEx(
-  (HKEY)first,
+    (HKEY)first,
     second,
     0,
     KEY_READ | KEY_WOW64_64KEY,
@@ -75,25 +74,30 @@ NAN_METHOD(ReadValues) {
   DWORD    cValues;                        // number of values for key
   DWORD    cchMaxValue;                    // longest value name
   DWORD    cbMaxValueData;                 // longest value data
-  DWORD    cbSecurityDescriptor;           // size of security descriptor
-  FILETIME ftLastWriteTime;                // last write time
 
   TCHAR  achValue[MAX_VALUE_NAME];
   DWORD cchValue = MAX_VALUE_NAME;
 
   auto retCode = RegQueryInfoKey(
-    hCurrentKey,                    // key handle
-    achClass,                // buffer for class name
-    &cchClassName,           // size of class string
-    NULL,                    // reserved
-    &cSubKeys,               // number of subkeys
-    &cbMaxSubKey,            // longest subkey size
-    &cchMaxClass,            // longest class string
-    &cValues,                // number of values for this key
-    &cchMaxValue,            // longest value name
-    &cbMaxValueData,         // longest value data
-    &cbSecurityDescriptor,   // security descriptor
-    &ftLastWriteTime);       // last write time
+    hCurrentKey,
+    achClass,
+    &cchClassName,
+    NULL, // reserved
+    &cSubKeys,
+    &cbMaxSubKey,
+    &cchMaxClass,
+    &cValues,
+    &cchMaxValue,
+    &cbMaxValueData,
+    NULL, // can ignore these values
+    NULL);
+
+  if (retCode != ERROR_SUCCESS) {
+    char* errorMessage = NULL;
+    sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
+    Nan::ThrowTypeError(errorMessage);
+    return;
+  }
 
   if (cValues == 0) {
     info.GetReturnValue().Set(New<v8::Array>(0));
@@ -141,7 +145,6 @@ NAN_METHOD(ReadValues) {
         // format in this way and avoid messing with strings
 
         DWORD type = REG_DWORD;
-        DWORD cbData;
         unsigned long size = 1024;
 
         LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &type, (LPBYTE)&cbData, &size);
