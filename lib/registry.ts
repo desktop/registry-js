@@ -92,3 +92,14 @@ export function enumerateValues(
 
   return result
 }
+
+export function enumerateValuesSafe(
+  key: HKEY,
+  subkey: string
+): ReadonlyArray<RegistryValue> {
+  try {
+    return enumerateValues(key, subkey)
+  } catch {
+    return []
+  }
+}

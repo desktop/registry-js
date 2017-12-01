@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import { enumerateValues, HKEY } from '../lib/index'
+import { enumerateValuesSafe, HKEY } from '../lib/index'
 
-describe('enumerateValue', () => {
+describe('enumerateValuesSafe', () => {
   it('can read strings from the registry', () => {
-    const values = enumerateValues(
+    const values = enumerateValuesSafe(
       HKEY.HKEY_LOCAL_MACHINE,
       'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
     )
@@ -18,7 +18,7 @@ describe('enumerateValue', () => {
   })
 
   it('can read numbers from the registry', () => {
-    const values = enumerateValues(
+    const values = enumerateValuesSafe(
       HKEY.HKEY_LOCAL_MACHINE,
       'SOFTWARE\\Microsoft\\ClipboardServer'
     )
