@@ -59,6 +59,13 @@ NAN_METHOD(ReadValues) {
     KEY_READ | KEY_WOW64_64KEY,
     &hCurrentKey);
 
+  if (openKey == ERROR_FILE_NOT_FOUND) {
+    // the key does not exist, just return an empty array for now
+    info.GetReturnValue().Set(New<v8::Array>(0));
+    return;
+  }
+
+
   if (openKey != ERROR_SUCCESS) {
     char* errorMessage = NULL;
     sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);

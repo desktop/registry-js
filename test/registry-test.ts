@@ -27,4 +27,10 @@ describe('enumerateValue', () => {
     expect(serviceTimeout!.type).equals('REG_DWORD')
     expect(serviceTimeout!.data).equals(60000)
   })
+
+  it('returns empty array when key is missing', () => {
+    const values = enumerateValues(HKEY.HKEY_LOCAL_MACHINE, 'blahblahblah')
+
+    expect(values).is.empty
+  })
 })
