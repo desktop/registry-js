@@ -1,0 +1,13 @@
+# ignore everything that's version controlled
+.vscode
+benchmarks/
+lib/
+script/
+test/
+.gitattributes
+appveyor.yml
+tsconfig.json
+
+# just include these specific artifacts
+# everything else should be compiled by the client
+!dist/lib/*

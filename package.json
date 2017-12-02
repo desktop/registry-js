@@ -1,11 +1,15 @@
 {
   "name": "lean-mean-registry-client",
   "version": "1.0.0",
-  "description": "A simple and opinionated library for interacting with the Windows registry",
-  "main": "build/lib/index.js",
+  "description":
+    "A simple and opinionated library for interacting with the Windows registry",
+  "main": "dist/lib/index.js",
+  "typings": "dist/lib/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha --require ts-node/register test/**/*.ts",
+    "pretest": "yarn build",
+    "test": "mocha dist/test/**/*.js",
+    "prepublish": "yarn build && yarn test",
     "benchmark": "ts-node benchmarks/reg.ts"
   },
   "repository": {
@@ -18,6 +22,7 @@
   "bugs": {
     "url": "https://github.com/desktop/lean-mean-registry-client/issues"
   },
+  "os": ["win32"],
   "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
   "devDependencies": {
     "@types/benchmark": "^1.0.31",

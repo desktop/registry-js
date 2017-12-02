@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'registryNativeModule',
+      'target_name': 'registry',
       'include_dirs': [ '<!(node -e "require(\'nan\')")' ],
       'conditions': [
         ['OS=="win"', {

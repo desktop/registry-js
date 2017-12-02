@@ -1,4 +1,4 @@
-const nativeModule = require('../build/Release/registryNativeModule.node')
+const nativeModule = require('../../build/Release/registry.node')
 
 /**
  * Utility function used to achieve exhaustive type checks at compile time.
