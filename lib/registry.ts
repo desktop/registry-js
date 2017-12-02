@@ -1,10 +1,4 @@
-let nativeModule: any | null = null
-
-try {
-  nativeModule = require('../../build/Release/registryNativeModule.node')
-} catch {
-  nativeModule = require('../build/Release/registryNativeModule.node')
-}
+const nativeModule = require('../../build/Release/registryNativeModule.node')
 
 /**
  * Utility function used to achieve exhaustive type checks at compile time.
