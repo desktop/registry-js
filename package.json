@@ -9,7 +9,7 @@
     "build": "tsc",
     "pretest": "yarn build",
     "test": "mocha dist/test/**/*.js",
-    "prepare": "yarn build && yarn test",
+    "prepublish": "yarn build && yarn test",
     "benchmark": "ts-node benchmarks/reg.ts"
   },
   "repository": {
