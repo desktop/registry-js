@@ -175,7 +175,7 @@ NAN_METHOD(ReadValues)
   {
     char* errorMessage = NULL;
     sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
-    Nan::ThrowTypeError(errorMessage);
+    Nan::ThrowError(errorMessage);
   }
 }
 
