@@ -2,6 +2,12 @@
 
 ## A simple and opinionated library for working with the Windows registry
 
+```shellsession
+$ npm install --save registry-js
+# or
+$ yarn add registry-js
+```
+
 ## Goals
 
 * zero dependencies
