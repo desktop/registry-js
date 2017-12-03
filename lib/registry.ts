@@ -1,3 +1,9 @@
+if (process.platform !== 'win32') {
+  throw new TypeError(
+    `This module is not supported on platform '${process.platform}'`
+  )
+}
+
 const nativeModule = require('../../build/Release/registry.node')
 
 /**
