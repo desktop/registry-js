@@ -31,17 +31,20 @@ v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data) {
 }
 
 NAN_METHOD(ReadValues) {
-  if (info.Length() < 2) {
+  if (info.Length() < 2)
+  {
     Nan::ThrowTypeError("Wrong number of arguments");
     return;
   }
 
-  if (!info[0]->IsNumber()) {
+  if (!info[0]->IsNumber())
+  {
     Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
     return;
   }
 
-  if (!info[1]->IsString()) {
+  if (!info[1]->IsString())
+  {
     Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
     return;
   }
@@ -59,7 +62,8 @@ NAN_METHOD(ReadValues) {
     KEY_READ | KEY_WOW64_64KEY,
     &hCurrentKey);
 
-  if (openKey == ERROR_FILE_NOT_FOUND) {
+  if (openKey == ERROR_FILE_NOT_FOUND)
+  {
     // the key does not exist, just return an empty array for now
     info.GetReturnValue().Set(New<v8::Array>(0));
   }
@@ -88,11 +92,14 @@ NAN_METHOD(ReadValues) {
       NULL, // can ignore these values
       NULL);
 
-    if (retCode != ERROR_SUCCESS) {
+    if (retCode != ERROR_SUCCESS)
+    {
       char* errorMessage = NULL;
       sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
       Nan::ThrowTypeError(errorMessage);
-    } else {
+    }
+    else
+    {
       auto results = New<v8::Array>(cValues);
       info.GetReturnValue().Set(results);
 
