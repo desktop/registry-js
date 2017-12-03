@@ -1,16 +1,16 @@
-# lean-mean-registry-api
+# registry-js
 
-## A simple and opinionated library for the Windows registry
-
-This library is a simple wrapper to interacting with the Windows registry. This
-is currently in preview, so it does not support all scenarios.
+## A simple and opinionated library for working with the Windows registry
 
 ## Goals
 
 * zero dependencies
 * faster than `reg.exe`
-* implement based on usage, don't replicate the registry API
+* implement based on usage - don't replicate the registry API
 * leverage TypeScript declarations wherever possible
+
+**Note:** This is currently in preview, with support for features that GitHub
+Desktop and Atom require.
 
 ## But Why?
 
@@ -29,27 +29,15 @@ After exploring other options like invoking PowerShell - which was too slow - we
 decided to write our own little library to do the stuff we require by invoking
 the Win32 APIs directly.
 
-## Usage, Not Feature Parity
+## Documentation
+
+See the documentation for the project is located under the
+[`docs`](https://github.com/desktop/registry-js/tree/master/docs) folder.
+
+## Contributing
 
 This project isn't about implementing a 1-1 replication of the Windows registry
-API. Instead, this should be about implementing just what you need to do, and
-fleshing this out organically based on real world usage.
+API, but implementing just enough for whatever usages there are in the wild.
 
-## Examples
-
-### Enumerating Values
-
-Here's a simple way to query the values found at a given registry key:
-
-```ts
-import { enumerateValues, HKEY } from 'lean-mean-registry-api'
-
-const values = enumerateValues(
-  HKEY.HKEY_LOCAL_MACHINE,
-  'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
-)
-```
-
-`values` will be an array of objects, each with `name`, `type` and `data`
-members. If you are consuming this library from TypeScript, you should get some
-extra type information around what's actually in `data`.
+If you want to see something supported, open an issue to start a discussion
+about it.
