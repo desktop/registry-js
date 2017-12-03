@@ -32,7 +32,7 @@ the Win32 APIs directly.
 
 ## Documentation
 
-See the documentation for the project is located under the
+See the documentation under the
 [`docs`](https://github.com/desktop/registry-js/tree/master/docs) folder.
 
 ## Contributing
