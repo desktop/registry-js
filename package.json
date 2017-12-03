@@ -1,5 +1,5 @@
 {
-  "name": "lean-mean-registry-client",
+  "name": "registry-js",
   "version": "1.0.0",
   "description":
     "A simple and opinionated library for interacting with the Windows registry",

@@ -1,15 +1,16 @@
-# lean-mean-registry-api
+# registry-js
 
 ## A simple and opinionated library for the Windows registry
 
 This library is a simple wrapper to interacting with the Windows registry. This
-is currently in preview, so it does not support all scenarios.
+is currently in preview, with support for features that GitHub Desktop and Atom
+require.
 
 ## Goals
 
 * zero dependencies
 * faster than `reg.exe`
-* implement based on usage, don't replicate the registry API
+* implement based on usage - don't replicate the registry API
 * leverage TypeScript declarations wherever possible
 
 ## But Why?
@@ -32,8 +33,8 @@ the Win32 APIs directly.
 ## Usage, Not Feature Parity
 
 This project isn't about implementing a 1-1 replication of the Windows registry
-API. Instead, this should be about implementing just what you need to do, and
-fleshing this out organically based on real world usage.
+API. If you want to see something supported, open an issue to start a discussion
+about it.
 
 ## Examples
 
@@ -42,7 +43,7 @@ fleshing this out organically based on real world usage.
 Here's a simple way to query the values found at a given registry key:
 
 ```ts
-import { enumerateValues, HKEY } from 'lean-mean-registry-api'
+import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 
 const values = enumerateValues(
   HKEY.HKEY_LOCAL_MACHINE,
@@ -53,3 +54,17 @@ const values = enumerateValues(
 `values` will be an array of objects, each with `name`, `type` and `data`
 members. If you are consuming this library from TypeScript, you should get some
 extra type information around what's actually in `data`.
+
+```ts
+for (const value of values) {
+  if (value.type === RegistryValueType.REG_SZ) {
+    const stringData = value.data
+    console.log(`Found: ${value.name} is ${path}`)
+  } else if (value.type === RegistryValueType.REG_DWORD) {
+    // 32-bit number is converted into a JS number
+    const numberData = value.data
+    console.log(`Found: ${value.name} is ${path}`)
+  }
+  // TODO: support other formats
+}
+```
