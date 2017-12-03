@@ -151,7 +151,12 @@ NAN_METHOD(ReadValues)
             }
           }
         }
-        else if (retCode != ERROR_NO_MORE_ITEMS)
+        else if (retCode == ERROR_NO_MORE_ITEMS)
+        {
+          // no more items found, time to wrap up
+          break;
+        }
+        else
         {
           char* errorMessage = NULL;
           sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
