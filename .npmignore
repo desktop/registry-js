@@ -1,6 +1,7 @@
-# ignore everything that's version controlled
+# ignore everything unrelated to the source code
 .vscode
 benchmarks/
+docs/
 lib/
 script/
 test/
