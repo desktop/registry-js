@@ -23,7 +23,8 @@ limitations that meant we couldn't use it in GitHub Desktop:
 * [`node-winreg`](https://www.npmjs.com/package/node-winreg) depends on
   `reg.exe` which breaks as soon as you enable "Prevent access to registry
   editing tools" Group Policy rules (yes, even `QUERY` operations are caught by
-  this)
+  this). More details about this can be found in
+  [desktop/desktop#3105](https://github.com/desktop/desktop/issues/3105).
 
 After exploring other options like invoking PowerShell - which was too slow - we
 decided to write our own little library to do the stuff we require by invoking
