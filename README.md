@@ -29,6 +29,11 @@ After exploring other options like invoking PowerShell - which was too slow - we
 decided to write our own little library to do the stuff we require by invoking
 the Win32 APIs directly.
 
+## Documentation
+
+See the documentation for the project is located under the
+[`docs`](https://github.com/desktop/registry-js/tree/master/docs) folder.
+
 ## Contributing
 
 This project isn't about implementing a 1-1 replication of the Windows registry
