@@ -22,7 +22,6 @@
   "bugs": {
     "url": "https://github.com/desktop/lean-mean-registry-client/issues"
   },
-  "os": ["win32"],
   "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
   "devDependencies": {
     "@types/benchmark": "^1.0.31",

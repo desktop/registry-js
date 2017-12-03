@@ -1,4 +1,7 @@
-const nativeModule = require('../../build/Release/registry.node')
+const nativeModule =
+  process.platform === 'win32'
+    ? require('../../build/Release/registry.node')
+    : null
 
 /**
  * Utility function used to achieve exhaustive type checks at compile time.
@@ -83,6 +86,11 @@ export function enumerateValues(
   key: HKEY,
   subkey: string
 ): ReadonlyArray<RegistryValue> {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return []
+  }
+
   const hkey = mapToLong(key)
 
   const result: ReadonlyArray<RegistryValue> = nativeModule.readValues(
