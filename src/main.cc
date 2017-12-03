@@ -14,7 +14,8 @@ using namespace v8;
 
 namespace {
 
-v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, char *data) {
+v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, char *data)
+{
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(name).ToLocalChecked());
   obj->Set(Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
@@ -22,7 +23,8 @@ v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, char *data) {
   return obj;
 }
 
-v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data) {
+v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data)
+{
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(name).ToLocalChecked());
   obj->Set(Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
@@ -30,57 +32,10 @@ v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data) {
   return obj;
 }
 
-NAN_METHOD(ReadValues) {
-  if (info.Length() < 2) {
-    Nan::ThrowTypeError("Wrong number of arguments");
-    return;
-  }
-
-  if (!info[0]->IsNumber()) {
-    Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
-    return;
-  }
-
-  if (!info[1]->IsString()) {
-    Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
-    return;
-  }
-
-  ULONG first = info[0]->NumberValue();
-  auto second = *v8::String::Utf8Value(info[1]);
-
-  HKEY hCurrentKey;
-  LONG openKey;
-
-  openKey = RegOpenKeyEx(
-    (HKEY)first,
-    second,
-    0,
-    KEY_READ | KEY_WOW64_64KEY,
-    &hCurrentKey);
-
-  if (openKey == ERROR_FILE_NOT_FOUND) {
-    // the key does not exist, just return an empty array for now
-    info.GetReturnValue().Set(New<v8::Array>(0));
-    return;
-  }
-
-
-  if (openKey != ERROR_SUCCESS) {
-    char* errorMessage = NULL;
-    sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
-    Nan::ThrowTypeError(errorMessage);
-    return;
-  }
-
+v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey) {
   TCHAR achClass[MAX_PATH] = TEXT("");  // buffer for class name
   DWORD cchClassName = MAX_PATH;        // size of class string
-  DWORD cSubKeys = 0;                   // number of subkeys
-  DWORD cbMaxSubKey;                    // longest subkey size
-  DWORD cchMaxClass;                    // longest class string
-  DWORD cValues;                        // number of values for key
-  DWORD cchMaxValue;                    // longest value name
-  DWORD cbMaxValueData;                 // longest value data
+  DWORD cValues, cchMaxValue, cbMaxValueData;
 
   TCHAR achValue[MAX_VALUE_NAME];
   DWORD cchValue = MAX_VALUE_NAME;
@@ -90,32 +45,26 @@ NAN_METHOD(ReadValues) {
     achClass,
     &cchClassName,
     NULL, // reserved
-    &cSubKeys,
-    &cbMaxSubKey,
-    &cchMaxClass,
-    &cValues,
-    &cchMaxValue,
-    &cbMaxValueData,
+    NULL, // can ignore subkey values
+    NULL,
+    NULL,
+    &cValues, // number of values for key
+    &cchMaxValue, // longest value name
+    &cbMaxValueData, // longest value data
     NULL, // can ignore these values
     NULL);
 
-  if (retCode != ERROR_SUCCESS) {
+  if (retCode != ERROR_SUCCESS)
+  {
     char* errorMessage = NULL;
     sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
-    Nan::ThrowTypeError(errorMessage);
-    return;
+    Nan::ThrowError(errorMessage);
+    return New<v8::Array>(0);
   }
 
-  if (cValues == 0) {
-    info.GetReturnValue().Set(New<v8::Array>(0));
-    return;
-  }
+  auto results = New<v8::Array>(cValues);
 
-  Local<Array> a = New<v8::Array>(cValues);
-  info.GetReturnValue().Set(a);
-
-  DWORD i;
-  for (i = 0, retCode = ERROR_SUCCESS; i<cValues; i++)
+  for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
   {
     cchValue = MAX_VALUE_NAME;
     achValue[0] = '\0';
@@ -140,13 +89,13 @@ NAN_METHOD(ReadValues) {
       {
         auto text = (char *)buffer;
         auto obj = CreateEntry(achValue, "REG_SZ", text);
-        Nan::Set(a, i, obj);
+        Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = (char *)buffer;
         auto obj = CreateEntry(achValue, "REG_EXPAND_SZ", text);
-        Nan::Set(a, i, obj);
+        Nan::Set(results, i, obj);
       }
       else if (lpType == REG_DWORD)
       {
@@ -160,19 +109,74 @@ NAN_METHOD(ReadValues) {
         LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &lpType, (LPBYTE)&cbData, &size);
         if (ERROR_SUCCESS == nError)
         {
-          Nan::Set(a, i, CreateEntry(achValue, "REG_DWORD", cbData));
+          Nan::Set(results, i, CreateEntry(achValue, "REG_DWORD", cbData));
         }
       }
     }
-    else if (retCode != ERROR_NO_MORE_ITEMS)
+    else if (retCode == ERROR_NO_MORE_ITEMS)
+    {
+      // no more items found, time to wrap up
+      break;
+    }
+    else
     {
       char* errorMessage = NULL;
       sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
-      Nan::ThrowTypeError(errorMessage);
+      Nan::ThrowError(errorMessage);
     }
   }
 
-  RegCloseKey(hCurrentKey);
+  return results;
+}
+
+NAN_METHOD(ReadValues)
+{
+  if (info.Length() < 2)
+  {
+    Nan::ThrowTypeError("Wrong number of arguments");
+    return;
+  }
+
+  if (!info[0]->IsNumber())
+  {
+    Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
+    return;
+  }
+
+  if (!info[1]->IsString())
+  {
+    Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+    return;
+  }
+
+  ULONG first = info[0]->NumberValue();
+  auto second = *v8::String::Utf8Value(info[1]);
+
+  HKEY hCurrentKey;
+  LONG openKey = RegOpenKeyEx(
+    (HKEY)first,
+    second,
+    0,
+    KEY_READ | KEY_WOW64_64KEY,
+    &hCurrentKey);
+
+  if (openKey == ERROR_FILE_NOT_FOUND)
+  {
+    // the key does not exist, just return an empty array for now
+    info.GetReturnValue().Set(New<v8::Array>(0));
+  }
+  else if (openKey == ERROR_SUCCESS)
+  {
+    v8::Local<v8::Array> results = EnumerateValues(hCurrentKey);
+    info.GetReturnValue().Set(results);
+    RegCloseKey(hCurrentKey);
+  }
+  else
+  {
+    char* errorMessage = NULL;
+    sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+    Nan::ThrowError(errorMessage);
+  }
 }
 
 void Init(v8::Handle<v8::Object> exports) {
