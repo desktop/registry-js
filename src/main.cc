@@ -16,6 +16,31 @@ namespace {
 
 const DWORD MAX_VALUE_NAME = 16383;
 
+LPWSTR utf8ToWideChar(std::string utf8) {
+  int wide_char_length = MultiByteToWideChar(CP_UTF8,
+    0,
+    utf8.c_str(),
+    -1,
+    nullptr,
+    0);
+  if (wide_char_length == 0) {
+    return nullptr;
+  }
+
+  LPWSTR result = new WCHAR[wide_char_length];
+  if (MultiByteToWideChar(CP_UTF8,
+    0,
+    utf8.c_str(),
+    -1,
+    result,
+    wide_char_length) == 0) {
+      delete[] result;
+      return nullptr;
+  }
+
+  return result;
+}
+
 v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
