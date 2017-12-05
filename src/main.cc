@@ -1,10 +1,12 @@
-
 #define UNICODE
 
 #include "nan.h"
+
 #include <windows.h>
-#include <stdio.h>
 #include <tchar.h>
+
+#include <cstdio>
+#include <memory>
 
 using namespace Nan;
 using namespace v8;
@@ -35,7 +37,7 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
   obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
-  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New((INT32)data));
+  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data)));
   return obj;
 }
 
@@ -63,14 +65,15 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
   if (retCode != ERROR_SUCCESS)
   {
-    char* errorMessage = NULL;
-    sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
+    char errorMessage[49]; // 38 for message + 10 for int + 1 for null
+    std::sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
     Nan::ThrowError(errorMessage);
     return New<v8::Array>(0);
   }
 
   auto results = New<v8::Array>(cValues);
 
+  std::unique_ptr<BYTE> buffer(new BYTE[cbMaxValueData]);
   for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
   {
     cchValue = MAX_VALUE_NAME;
@@ -78,7 +81,6 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
     DWORD lpType;
     DWORD cbData = cbMaxValueData;
-    auto buffer = new byte[cbMaxValueData];
 
     retCode = RegEnumValue(
       hCurrentKey,
@@ -87,20 +89,20 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       &cchValue,
       NULL,
       &lpType,
-      buffer,
+      buffer.get(),
       &cbData);
 
     if (retCode == ERROR_SUCCESS)
     {
       if (lpType == REG_SZ)
       {
-        auto text = (LPWSTR)buffer;
+        auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(isolate, achValue, TEXT("REG_SZ"), text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
-        auto text = (LPWSTR)buffer;
+        auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(isolate, achValue, TEXT("REG_EXPAND_SZ"), text);
         Nan::Set(results, i, obj);
       }
@@ -127,8 +129,8 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     }
     else
     {
-      char* errorMessage = NULL;
-      sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
+      char errorMessage[50]; // 39 for message + 10 for int  + 1 for null
+      std::sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowError(errorMessage);
     }
   }
@@ -180,8 +182,8 @@ NAN_METHOD(ReadValues)
   }
   else
   {
-    char* errorMessage = NULL;
-    sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+    char errorMessage[46]; // 35 for message + 10 for int + 1 for null
+    std::sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Nan::ThrowError(errorMessage);
   }
 }
