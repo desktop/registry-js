@@ -37,7 +37,7 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
   obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
-  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New((INT32)data));
+  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data)));
   return obj;
 }
 
