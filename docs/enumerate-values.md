@@ -30,11 +30,11 @@ information around what's actually in `data`.
 for (const value of values) {
   if (value.type === RegistryValueType.REG_SZ) {
     const stringData = value.data
-    console.log(`Found: ${value.name} is ${path}`)
+    console.log(`Found: ${value.name} is ${stringData}`)
   } else if (value.type === RegistryValueType.REG_DWORD) {
     // 32-bit number is converted into a JS number
     const numberData = value.data
-    console.log(`Found: ${value.name} is ${path}`)
+    console.log(`Found: ${value.name} is ${numberData}`)
   }
   // TODO: support other formats
 }
