@@ -118,6 +118,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       char errorMessage[50]; // 39 for message + 10 for int  + 1 for null
       sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowError(errorMessage);
+      return New<v8::Array>(0);
     }
   }
 
