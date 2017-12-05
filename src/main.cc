@@ -30,10 +30,11 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
 v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DWORD data)
 {
   auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
+  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
 
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
-  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
+  obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
   obj->Set(Nan::New("data").ToLocalChecked(), Nan::New((INT32)data));
   return obj;
 }
