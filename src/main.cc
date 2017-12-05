@@ -16,6 +16,31 @@ namespace {
 
 const DWORD MAX_VALUE_NAME = 16383;
 
+LPWSTR utf8ToWideChar(std::string utf8) {
+  int wide_char_length = MultiByteToWideChar(CP_UTF8,
+    0,
+    utf8.c_str(),
+    -1,
+    nullptr,
+    0);
+  if (wide_char_length == 0) {
+    return nullptr;
+  }
+
+  LPWSTR result = new WCHAR[wide_char_length];
+  if (MultiByteToWideChar(CP_UTF8,
+    0,
+    utf8.c_str(),
+    -1,
+    result,
+    wide_char_length) == 0) {
+      delete[] result;
+      return nullptr;
+  }
+
+  return result;
+}
+
 v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
@@ -159,12 +184,20 @@ NAN_METHOD(ReadValues)
   }
 
   auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
-  auto second = *v8::String::Value(info[1]);
+
+  v8::String::Utf8Value subkeyArg(info[1]->ToString());
+  auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+
+  if (subkey == nullptr)
+  {
+    Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+    return;
+  }
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
     first,
-    (LPWSTR)second,
+    subkey,
     0,
     KEY_READ | KEY_WOW64_64KEY,
     &hCurrentKey);
