@@ -1,4 +1,6 @@
 
+#define UNICODE
+
 #include "nan.h"
 #include <windows.h>
 #include <stdio.h>
@@ -7,37 +9,42 @@
 using namespace Nan;
 using namespace v8;
 
-#define UNICODE
-
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 
 namespace {
 
-v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, char *data)
+v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data)
 {
+  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
+  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
+  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal);
+
   auto obj = Nan::New<v8::Object>();
-  obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(name).ToLocalChecked());
-  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
-  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New<v8::String>(data).ToLocalChecked());
+  obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
+  obj->Set(Nan::New("data").ToLocalChecked(), v8DataString.ToLocalChecked());
   return obj;
 }
 
-v8::Local<v8::Object> CreateEntry(TCHAR *name, TCHAR *type, DWORD data)
+v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DWORD data)
 {
+  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
+  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
+
   auto obj = Nan::New<v8::Object>();
-  obj->Set(Nan::New("name").ToLocalChecked(), Nan::New(name).ToLocalChecked());
-  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
+  obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
   obj->Set(Nan::New("data").ToLocalChecked(), Nan::New((INT32)data));
   return obj;
 }
 
-v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey) {
-  TCHAR achClass[MAX_PATH] = TEXT("");  // buffer for class name
+v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
+  WCHAR achClass[MAX_PATH] = TEXT("");	// buffer for class name
   DWORD cchClassName = MAX_PATH;        // size of class string
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
-  TCHAR achValue[MAX_VALUE_NAME];
+  WCHAR achValue[MAX_VALUE_NAME];
   DWORD cchValue = MAX_VALUE_NAME;
 
   auto retCode = RegQueryInfoKey(
@@ -87,14 +94,14 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey) {
     {
       if (lpType == REG_SZ)
       {
-        auto text = (char *)buffer;
-        auto obj = CreateEntry(achValue, "REG_SZ", text);
+        auto text = (LPWSTR)buffer;
+        auto obj = CreateEntry(isolate, achValue, TEXT("REG_SZ"), text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
-        auto text = (char *)buffer;
-        auto obj = CreateEntry(achValue, "REG_EXPAND_SZ", text);
+        auto text = (LPWSTR)buffer;
+        auto obj = CreateEntry(isolate, achValue, TEXT("REG_EXPAND_SZ"), text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_DWORD)
@@ -109,7 +116,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey) {
         LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &lpType, (LPBYTE)&cbData, &size);
         if (ERROR_SUCCESS == nError)
         {
-          Nan::Set(results, i, CreateEntry(achValue, "REG_DWORD", cbData));
+          Nan::Set(results, i, CreateEntry(isolate, achValue, TEXT("REG_DWORD"), cbData));
         }
       }
     }
@@ -150,12 +157,12 @@ NAN_METHOD(ReadValues)
   }
 
   ULONG first = info[0]->NumberValue();
-  auto second = *v8::String::Utf8Value(info[1]);
+  auto second = *v8::String::Value(info[1]);
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
     (HKEY)first,
-    second,
+    (LPWSTR)second,
     0,
     KEY_READ | KEY_WOW64_64KEY,
     &hCurrentKey);
@@ -167,7 +174,7 @@ NAN_METHOD(ReadValues)
   }
   else if (openKey == ERROR_SUCCESS)
   {
-    v8::Local<v8::Array> results = EnumerateValues(hCurrentKey);
+    v8::Local<v8::Array> results = EnumerateValues(hCurrentKey, info.GetIsolate());
     info.GetReturnValue().Set(results);
     RegCloseKey(hCurrentKey);
   }
