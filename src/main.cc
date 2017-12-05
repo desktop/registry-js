@@ -1,11 +1,12 @@
-
 #define UNICODE
 
 #include "nan.h"
+
 #include <windows.h>
-#include <stdio.h>
 #include <tchar.h>
 
+#include <cstdio>
+#include <memory>
 using namespace Nan;
 using namespace v8;
 
@@ -71,6 +72,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
   auto results = New<v8::Array>(cValues);
 
+  std::unique_ptr<BYTE> buffer(new BYTE[cbMaxValueData]);
   for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
   {
     cchValue = MAX_VALUE_NAME;
@@ -78,7 +80,6 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
     DWORD lpType;
     DWORD cbData = cbMaxValueData;
-    auto buffer = new byte[cbMaxValueData];
 
     retCode = RegEnumValue(
       hCurrentKey,
@@ -87,20 +88,20 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       &cchValue,
       NULL,
       &lpType,
-      buffer,
+      buffer.get(),
       &cbData);
 
     if (retCode == ERROR_SUCCESS)
     {
       if (lpType == REG_SZ)
       {
-        auto text = (LPWSTR)buffer;
+        auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(isolate, achValue, TEXT("REG_SZ"), text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
-        auto text = (LPWSTR)buffer;
+        auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(isolate, achValue, TEXT("REG_EXPAND_SZ"), text);
         Nan::Set(results, i, obj);
       }
