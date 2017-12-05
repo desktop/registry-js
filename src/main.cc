@@ -42,14 +42,12 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
 }
 
 v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
-  WCHAR achClass[MAX_PATH] = L"";	// buffer for class name
-  DWORD cchClassName = MAX_PATH;        // size of class string
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
   auto retCode = RegQueryInfoKey(
     hCurrentKey,
-    achClass,
-    &cchClassName,
+    nullptr, // classname (not needed)
+    nullptr, // classname length (not needed)
     nullptr, // reserved
     nullptr, // can ignore subkey values
     nullptr,
