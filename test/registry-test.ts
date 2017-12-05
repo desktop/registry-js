@@ -11,7 +11,7 @@ if (process.platform === 'win32') {
 
       const programFilesDir = values.find(v => v.name == 'ProgramFilesDir')
       expect(programFilesDir!.type).equals('REG_SZ')
-      expect(programFilesDir!.data).contains('C:\\Program Files')
+      expect(programFilesDir!.data).contains(':\\Program Files')
 
       const programFilesPath = values.find(v => v.name == 'ProgramFilesPath')
       expect(programFilesPath!.type).equals('REG_EXPAND_SZ')
