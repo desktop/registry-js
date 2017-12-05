@@ -158,12 +158,12 @@ NAN_METHOD(ReadValues)
     return;
   }
 
-  ULONG first = info[0]->NumberValue();
+  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
   auto second = *v8::String::Value(info[1]);
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
-    (HKEY)first,
+    first,
     (LPWSTR)second,
     0,
     KEY_READ | KEY_WOW64_64KEY,
