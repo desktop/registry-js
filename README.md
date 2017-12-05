@@ -2,12 +2,6 @@
 
 ## A simple and opinionated library for working with the Windows registry
 
-```shellsession
-$ npm install --save registry-js
-# or
-$ yarn add registry-js
-```
-
 ## Goals
 
 * zero dependencies
@@ -17,6 +11,14 @@ $ yarn add registry-js
 
 **Note:** This is currently in preview, with support for features that GitHub
 Desktop and Atom require.
+
+## Install 
+
+```shellsession
+$ npm install --save registry-js
+# or
+$ yarn add registry-js
+```
 
 ## But Why?
 
@@ -42,6 +44,9 @@ See the documentation under the
 [`docs`](https://github.com/desktop/registry-js/tree/master/docs) folder.
 
 ## Contributing
+
+Read the [Setup](https://github.com/desktop/registry-js/blob/master/docs/index.md#setup)
+section to ensure your development environment is setup for what you need.
 
 This project isn't about implementing a 1-1 replication of the Windows registry
 API, but implementing just enough for whatever usages there are in the wild.
