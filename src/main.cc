@@ -66,8 +66,8 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
   if (retCode != ERROR_SUCCESS)
   {
-    char errorMessage[49]; // 38 for message + 10 for int + 1 for null
-    std::sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
+    char errorMessage[49]; // 38 for message + 10 for int + 1 for nul
+    sprintf_s(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
     Nan::ThrowError(errorMessage);
     return New<v8::Array>(0);
   }
@@ -131,7 +131,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     else
     {
       char errorMessage[50]; // 39 for message + 10 for int  + 1 for null
-      std::sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
+      sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowError(errorMessage);
     }
   }
@@ -184,7 +184,7 @@ NAN_METHOD(ReadValues)
   else
   {
     char errorMessage[46]; // 35 for message + 10 for int + 1 for null
-    std::sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+    sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Nan::ThrowError(errorMessage);
   }
 }
