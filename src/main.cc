@@ -1,9 +1,10 @@
+// Windows.h strict mode
+#define STRICT
 #define UNICODE
 
 #include "nan.h"
 
 #include <windows.h>
-#include <tchar.h>
 
 #include <cstdio>
 #include <memory>
@@ -11,16 +12,28 @@
 using namespace Nan;
 using namespace v8;
 
-#define MAX_KEY_LENGTH 255
-#define MAX_VALUE_NAME 16383
-
 namespace {
 
-v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data)
+const DWORD MAX_VALUE_NAME = 16383;
+
+v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
+  // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
+
+  // Test is ">= sizeof(wchar_t)" because otherwise 1/2 - 1 = -1 and things go kabloom:
+  if (dataLengthBytes >= sizeof(wchar_t) && data[dataLengthBytes/sizeof(wchar_t) - 1] == L'\0')
+  {
+    // The string is (correctly) null-terminated.
+    // Trim off the null terminator before handing it to NewFromTwoByte:
+    dataLengthBytes -= sizeof(wchar_t);
+  }
+
+  // ... otherwise, it's not null-terminated, but we're passing the explicit length
+  // to NewFromTwoByte anyway so we'll be fine (we won't over-read).
+
   auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
   auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
-  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal);
+  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
 
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
@@ -42,31 +55,26 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
 }
 
 v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
-  WCHAR achClass[MAX_PATH] = TEXT("");	// buffer for class name
-  DWORD cchClassName = MAX_PATH;        // size of class string
   DWORD cValues, cchMaxValue, cbMaxValueData;
-
-  WCHAR achValue[MAX_VALUE_NAME];
-  DWORD cchValue = MAX_VALUE_NAME;
 
   auto retCode = RegQueryInfoKey(
     hCurrentKey,
-    achClass,
-    &cchClassName,
-    NULL, // reserved
-    NULL, // can ignore subkey values
-    NULL,
-    NULL,
+    nullptr, // classname (not needed)
+    nullptr, // classname length (not needed)
+    nullptr, // reserved
+    nullptr, // can ignore subkey values
+    nullptr,
+    nullptr,
     &cValues, // number of values for key
     &cchMaxValue, // longest value name
     &cbMaxValueData, // longest value data
-    NULL, // can ignore these values
-    NULL);
+    nullptr, // can ignore these values
+    nullptr);
 
   if (retCode != ERROR_SUCCESS)
   {
-    char errorMessage[49]; // 38 for message + 10 for int + 1 for null
-    std::sprintf(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
+    char errorMessage[49]; // 38 for message + 10 for int + 1 for nul
+    sprintf_s(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
     Nan::ThrowError(errorMessage);
     return New<v8::Array>(0);
   }
@@ -74,20 +82,21 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
   auto results = New<v8::Array>(cValues);
 
   auto buffer = std::make_unique<BYTE[]>(cbMaxValueData);
-  for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
+  for (DWORD i = 0; i < cValues; i++)
   {
-    cchValue = MAX_VALUE_NAME;
+    auto cchValue = MAX_VALUE_NAME;
+    WCHAR achValue[MAX_VALUE_NAME];
     achValue[0] = '\0';
 
     DWORD lpType;
     DWORD cbData = cbMaxValueData;
 
-    retCode = RegEnumValue(
+    auto retCode = RegEnumValue(
       hCurrentKey,
       i,
       achValue,
       &cchValue,
-      NULL,
+      nullptr,
       &lpType,
       buffer.get(),
       &cbData);
@@ -97,29 +106,19 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, TEXT("REG_SZ"), text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_SZ", text, cbData);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, TEXT("REG_EXPAND_SZ"), text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_EXPAND_SZ", text, cbData);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_DWORD)
       {
-        // NOTE:
-        // at this point the value in buffer looks like this: '\x124242'
-        // i haven't figured out an easy way to parse this, so I'm going to make
-        // a second call because I know I can get the value out in the correct
-        // format in this way and avoid messing with strings
-        unsigned long size = 1024;
-
-        LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &lpType, (LPBYTE)&cbData, &size);
-        if (ERROR_SUCCESS == nError)
-        {
-          Nan::Set(results, i, CreateEntry(isolate, achValue, TEXT("REG_DWORD"), cbData));
-        }
+        assert(cbData == sizeof(DWORD));
+        Nan::Set(results, i, CreateEntry(isolate, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -129,9 +128,10 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     }
     else
     {
-      char errorMessage[50]; // 39 for message + 10 for int  + 1 for null
-      std::sprintf(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
+      char errorMessage[50]; // 39 for message + 10 for int  + 1 for nul
+      sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowError(errorMessage);
+      return New<v8::Array>(0);
     }
   }
 
@@ -182,8 +182,8 @@ NAN_METHOD(ReadValues)
   }
   else
   {
-    char errorMessage[46]; // 35 for message + 10 for int + 1 for null
-    std::sprintf(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+    char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
+    sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Nan::ThrowError(errorMessage);
   }
 }
