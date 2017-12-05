@@ -184,12 +184,20 @@ NAN_METHOD(ReadValues)
   }
 
   auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
-  auto second = *v8::String::Value(info[1]);
+
+  v8::String::Utf8Value subkeyArg(info[1]->ToString());
+  auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+
+  if (subkey == nullptr)
+  {
+    Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+    return;
+  }
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
     first,
-    (LPWSTR)second,
+    subkey,
     0,
     KEY_READ | KEY_WOW64_64KEY,
     &hCurrentKey);
