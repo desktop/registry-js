@@ -73,7 +73,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
   auto results = New<v8::Array>(cValues);
 
-  std::unique_ptr<BYTE> buffer(new BYTE[cbMaxValueData]);
+  auto buffer = std::make_unique<BYTE[]>(cbMaxValueData);
   for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
   {
     cchValue = MAX_VALUE_NAME;
