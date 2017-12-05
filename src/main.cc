@@ -157,7 +157,7 @@ NAN_METHOD(ReadValues)
   }
 
   ULONG first = info[0]->NumberValue();
-  auto second = *v8::String::Utf8Value(info[1]);
+  auto second = *v8::String::Value(info[1]);
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
