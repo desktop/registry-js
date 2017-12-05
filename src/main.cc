@@ -46,9 +46,6 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
   DWORD cchClassName = MAX_PATH;        // size of class string
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
-  WCHAR achValue[MAX_VALUE_NAME];
-  DWORD cchValue = MAX_VALUE_NAME;
-
   auto retCode = RegQueryInfoKey(
     hCurrentKey,
     achClass,
@@ -74,15 +71,16 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
   auto results = New<v8::Array>(cValues);
 
   auto buffer = std::make_unique<BYTE[]>(cbMaxValueData);
-  for (DWORD i = 0, retCode = ERROR_SUCCESS; i < cValues; i++)
+  for (DWORD i = 0; i < cValues; i++)
   {
-    cchValue = MAX_VALUE_NAME;
+    auto cchValue = MAX_VALUE_NAME;
+    WCHAR achValue[MAX_VALUE_NAME];
     achValue[0] = '\0';
 
     DWORD lpType;
     DWORD cbData = cbMaxValueData;
 
-    retCode = RegEnumValue(
+    auto retCode = RegEnumValue(
       hCurrentKey,
       i,
       achValue,
