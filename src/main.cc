@@ -128,7 +128,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     }
     else
     {
-      char errorMessage[50]; // 39 for message + 10 for int  + 1 for null
+      char errorMessage[50]; // 39 for message + 10 for int  + 1 for nul
       sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Nan::ThrowError(errorMessage);
       return New<v8::Array>(0);
@@ -182,7 +182,7 @@ NAN_METHOD(ReadValues)
   }
   else
   {
-    char errorMessage[46]; // 35 for message + 10 for int + 1 for null
+    char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
     sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Nan::ThrowError(errorMessage);
   }
