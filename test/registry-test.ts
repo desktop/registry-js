@@ -29,6 +29,17 @@ if (process.platform === 'win32') {
       expect(serviceTimeout!.data).equals(60000)
     })
 
+    it('can read values from HKCU', () => {
+      const values = enumerateValues(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\DWM'
+      )
+
+      const composition = values.find(v => v.name == 'Composition')
+      expect(composition!.type).equals('REG_DWORD')
+      expect(composition!.data).equals(1)
+    })
+
     it('returns empty array when key is missing', () => {
       const values = enumerateValues(HKEY.HKEY_LOCAL_MACHINE, 'blahblahblah')
 
