@@ -21,7 +21,7 @@ suite
     },
     { defer: true }
   )
-  .add('registry.js', function() {
+  .add('registry-js', function() {
     enumerateValues(
       HKEY.HKEY_LOCAL_MACHINE,
       'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
