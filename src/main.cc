@@ -53,15 +53,15 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     hCurrentKey,
     achClass,
     &cchClassName,
-    NULL, // reserved
-    NULL, // can ignore subkey values
-    NULL,
-    NULL,
+    nullptr, // reserved
+    nullptr, // can ignore subkey values
+    nullptr,
+    nullptr,
     &cValues, // number of values for key
     &cchMaxValue, // longest value name
     &cbMaxValueData, // longest value data
-    NULL, // can ignore these values
-    NULL);
+    nullptr, // can ignore these values
+    nullptr);
 
   if (retCode != ERROR_SUCCESS)
   {
@@ -87,7 +87,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       i,
       achValue,
       &cchValue,
-      NULL,
+      nullptr,
       &lpType,
       buffer.get(),
       &cbData);
@@ -115,7 +115,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
         // format in this way and avoid messing with strings
         unsigned long size = 1024;
 
-        LONG nError = RegQueryValueEx(hCurrentKey, achValue, NULL, &lpType, (LPBYTE)&cbData, &size);
+        LONG nError = RegQueryValueEx(hCurrentKey, achValue, nullptr, &lpType, (LPBYTE)&cbData, &size);
         if (ERROR_SUCCESS == nError)
         {
           Nan::Set(results, i, CreateEntry(isolate, achValue, TEXT("REG_DWORD"), cbData));
