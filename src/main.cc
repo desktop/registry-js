@@ -1,9 +1,10 @@
+// Windows.h strict mode
+#define STRICT
 #define UNICODE
 
 #include "nan.h"
 
 #include <windows.h>
-#include <tchar.h>
 
 #include <cstdio>
 #include <memory>
@@ -42,7 +43,7 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
 }
 
 v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
-  WCHAR achClass[MAX_PATH] = TEXT("");	// buffer for class name
+  WCHAR achClass[MAX_PATH] = L"";	// buffer for class name
   DWORD cchClassName = MAX_PATH;        // size of class string
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
@@ -97,13 +98,13 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, TEXT("REG_SZ"), text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_SZ", text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, TEXT("REG_EXPAND_SZ"), text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_EXPAND_SZ", text);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_DWORD)
