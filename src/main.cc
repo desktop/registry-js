@@ -12,10 +12,9 @@
 using namespace Nan;
 using namespace v8;
 
-#define MAX_KEY_LENGTH 255
-#define MAX_VALUE_NAME 16383
-
 namespace {
+
+const DWORD MAX_VALUE_NAME = 16383;
 
 v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data)
 {
