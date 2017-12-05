@@ -16,11 +16,24 @@ namespace {
 
 const DWORD MAX_VALUE_NAME = 16383;
 
-v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data)
+v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
+  // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
+
+  // Test is ">= sizeof(wchar_t)" because otherwise 1/2 - 1 = -1 and things go kabloom:
+  if (dataLengthBytes >= sizeof(wchar_t) && data[dataLengthBytes/sizeof(wchar_t) - 1] == L'\0')
+  {
+    // The string is (correctly) null-terminated.
+    // Trim off the null terminator before handing it to NewFromTwoByte:
+    dataLengthBytes -= sizeof(wchar_t);
+  }
+
+  // ... otherwise, it's not null-terminated, but we're passing the explicit length
+  // to NewFromTwoByte anyway so we'll be fine (we won't over-read).
+
   auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
   auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
-  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal);
+  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
 
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
@@ -93,13 +106,13 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, L"REG_SZ", text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_SZ", text, cbData);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, L"REG_EXPAND_SZ", text);
+        auto obj = CreateEntry(isolate, achValue, L"REG_EXPAND_SZ", text, cbData);
         Nan::Set(results, i, obj);
       }
       else if (lpType == REG_DWORD)
