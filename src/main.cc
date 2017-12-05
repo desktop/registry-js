@@ -104,18 +104,8 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       }
       else if (lpType == REG_DWORD)
       {
-        // NOTE:
-        // at this point the value in buffer looks like this: '\x124242'
-        // i haven't figured out an easy way to parse this, so I'm going to make
-        // a second call because I know I can get the value out in the correct
-        // format in this way and avoid messing with strings
-        unsigned long size = 1024;
-
-        LONG nError = RegQueryValueEx(hCurrentKey, achValue, nullptr, &lpType, (LPBYTE)&cbData, &size);
-        if (ERROR_SUCCESS == nError)
-        {
-          Nan::Set(results, i, CreateEntry(isolate, achValue, TEXT("REG_DWORD"), cbData));
-        }
+        assert(cbData == sizeof(DWORD));
+        Nan::Set(results, i, CreateEntry(isolate, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
