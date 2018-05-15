@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { enumerateValues, HKEY } from '../lib/index'
+import { enumerateValues, enumerateKeys, HKEY } from '../lib/index'
 
 if (process.platform === 'win32') {
   describe('enumerateValue', () => {
@@ -44,6 +44,22 @@ if (process.platform === 'win32') {
       const values = enumerateValues(HKEY.HKEY_LOCAL_MACHINE, 'blahblahblah')
 
       expect(values).is.empty
+    })
+  })
+  describe('enumerateKeys', () => {
+    it('can enumerate key names from the registry (No subkey)', () => {
+      const values = enumerateKeys(HKEY.HKEY_CURRENT_USER, null)
+
+      expect(values.indexOf('Environment')).gte(0)
+      expect(values.indexOf('Microsoft')).gte(0)
+      expect(values.indexOf('Software')).gte(0)
+      expect(values.indexOf('System')).gte(0)
+    })
+    it('can enumerate key names from the registry', () => {
+      const values = enumerateKeys(HKEY.HKEY_CURRENT_USER, 'Software')
+
+      expect(values.indexOf('Classes')).gte(0)
+      expect(values.indexOf('Microsoft')).gte(0)
     })
   })
 }
