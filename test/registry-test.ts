@@ -48,15 +48,14 @@ if (process.platform === 'win32') {
   })
   describe('enumerateKeys', () => {
     it('can enumerate key names from the registry (No subkey)', () => {
-      const values = enumerateKeys(HKEY.HKEY_CURRENT_USER, null)
+      const values = enumerateKeys(HKEY.HKEY_LOCAL_MACHINE, null)
 
-      expect(values.indexOf('Environment')).gte(0)
-      expect(values.indexOf('Microsoft')).gte(0)
-      expect(values.indexOf('Software')).gte(0)
-      expect(values.indexOf('System')).gte(0)
+      expect(values.indexOf('HARDWARE')).gte(0)
+      expect(values.indexOf('SOFTWARE')).gte(0)
+      expect(values.indexOf('SYSTEM')).gte(0)
     })
     it('can enumerate key names from the registry', () => {
-      const values = enumerateKeys(HKEY.HKEY_CURRENT_USER, 'Software')
+      const values = enumerateKeys(HKEY.HKEY_LOCAL_MACHINE, 'SOFTWARE')
 
       expect(values.indexOf('Classes')).gte(0)
       expect(values.indexOf('Microsoft')).gte(0)
