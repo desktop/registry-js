@@ -25,12 +25,12 @@
   "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
   "devDependencies": {
     "@types/benchmark": "^1.0.31",
-    "@types/chai": "^4.0.5",
-    "@types/mocha": "^2.2.44",
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
     "@types/node": "^10.9.1",
     "benchmark": "^2.1.4",
     "chai": "^4.1.2",
-    "mocha": "^4.0.1",
+    "mocha": "^5.2.0",
     "prettier": "^1.14.2",
     "ts-node": "^7.0.1",
     "typescript": "^3.0.1"
