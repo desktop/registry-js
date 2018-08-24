@@ -4,7 +4,9 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "8.9.0"
+  matrix:
+    - nodejs_version: '8'
+    - nodejs_version: '10'
 
 cache:
   - node_modules
