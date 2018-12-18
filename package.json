@@ -10,7 +10,9 @@
     "test": "mocha dist/test/**/*.js",
     "prepublish": "yarn build && yarn test",
     "postpublish": "git push --follow-tags",
-    "benchmark": "ts-node benchmarks/reg.ts"
+    "benchmark": "ts-node benchmarks/reg.ts",
+    "prettier": "prettier --write lib/*.ts test/*.ts",
+    "check-prettier": "prettier --list-different lib/*.ts test/*.ts"
   },
   "repository": {
     "type": "git",
