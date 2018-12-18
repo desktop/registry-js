@@ -22,6 +22,7 @@ install:
   - yarn install --force
 
 build_script:
+  - yarn check-prettier
   - yarn build
 
 test_script:
