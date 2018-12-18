@@ -8,7 +8,13 @@ test/
 .gitattributes
 appveyor.yml
 tsconfig.json
+.yarnrc
+vendor/
+yarn-error.log
+*.tgz
 
 # just include these specific artifacts
 # everything else should be compiled by the client
 !dist/lib/*
+!build/Release/registry.node
+
