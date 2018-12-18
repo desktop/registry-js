@@ -16,5 +16,3 @@ yarn-error.log
 # just include these specific artifacts
 # everything else should be compiled by the client
 !dist/lib/*
-!build/Release/registry.node
-
