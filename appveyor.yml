@@ -10,7 +10,7 @@ environment:
     # latest LTS
     - nodejs_version: '10'
     # Electron 3
-    - nodejs_version: '10.2.0'
+    - nodejs_version: '10.2.1'
     # Electron 4
     - nodejs_version: '10.11.0'
     # bleeding edge
