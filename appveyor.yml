@@ -5,8 +5,16 @@ platform:
 
 environment:
   matrix:
+    # previous LTS
     - nodejs_version: '8'
+    # latest LTS
     - nodejs_version: '10'
+    # Electron 3
+    - nodejs_version: '10.2.0'
+    # Electron 4
+    - nodejs_version: '10.11.0'
+    # bleeding edge
+    - nodejs_version: '11'
 
 cache:
   - node_modules
