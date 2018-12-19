@@ -1,6 +1,6 @@
 {
   "name": "registry-js",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A simple and opinionated library for working with the Windows registry",
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
