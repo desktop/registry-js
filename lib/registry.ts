@@ -118,17 +118,14 @@ export function enumerateKeys(
 ): ReadonlyArray<string> {
   if (!nativeModule) {
     // this code is a no-op when the module is missing
-    return []
+    return [];
   }
 
-  const hkey = mapToLong(key)
+  const hkey = mapToLong(key);
 
-  const result: ReadonlyArray<string> = nativeModule.enumKeys(
-    hkey,
-    subkey
-  )
+  const result: ReadonlyArray<string> = nativeModule.enumKeys(hkey, subkey);
 
-  return result
+  return result;
 }
 
 export function enumerateKeysSafe(
@@ -136,8 +133,8 @@ export function enumerateKeysSafe(
   subkey?: string | null
 ): ReadonlyArray<string> {
   try {
-    return enumerateKeys(key, subkey)
+    return enumerateKeys(key, subkey);
   } catch {
-    return []
+    return [];
   }
 }
