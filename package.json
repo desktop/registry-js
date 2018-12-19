@@ -1,6 +1,6 @@
 {
   "name": "registry-js",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "A simple and opinionated library for working with the Windows registry",
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
@@ -10,7 +10,9 @@
     "test": "mocha dist/test/**/*.js",
     "prepublish": "yarn build && yarn test",
     "postpublish": "git push --follow-tags",
-    "benchmark": "ts-node benchmarks/reg.ts"
+    "benchmark": "ts-node benchmarks/reg.ts",
+    "prettier": "prettier --write lib/*.ts test/*.ts",
+    "check-prettier": "prettier --list-different lib/*.ts test/*.ts"
   },
   "repository": {
     "type": "git",
