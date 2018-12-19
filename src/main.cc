@@ -221,8 +221,74 @@ NAN_METHOD(ReadValues)
   }
 }
 
+NAN_METHOD(EnumKeys) {
+  auto argCount = info.Length();
+  if (argCount != 1 && argCount != 2)
+  {
+    Nan::ThrowTypeError("Wrong number of arguments");
+    return;
+  }
+
+  if (!info[0]->IsNumber())
+  {
+    Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
+    return;
+  }
+
+  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
+
+  HKEY hCurrentKey = first;
+  if (argCount == 2 && !info[1]->IsNullOrUndefined())
+  {
+    if (!info[1]->IsString())
+    {
+      Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+      return;
+    }
+    v8::String::Utf8Value subkeyArg(info[1]->ToString());
+    auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+    if (subkey == nullptr)
+    {
+      Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+      return;
+    }
+
+    auto openKey = RegOpenKeyEx(
+        first,
+        subkey,
+        0,
+        KEY_READ | KEY_WOW64_64KEY,
+        &hCurrentKey);
+    if (openKey != ERROR_SUCCESS)
+    {
+      // FIXME: the key does not exist, just return an empty array for now
+      info.GetReturnValue().Set(New<v8::Array>(0));
+      return;
+    }
+  }
+
+  auto results = New<v8::Array>(0);
+  WCHAR name[MAX_VALUE_NAME];
+  for (int i = 0;; i++)
+  {
+    DWORD nameLen = MAX_VALUE_NAME;
+    auto ret = RegEnumKeyEx(hCurrentKey, i, name, &nameLen, nullptr, nullptr, nullptr, nullptr);
+    if (ret == ERROR_SUCCESS)
+    {
+      auto v8NameString = v8::String::NewFromTwoByte(info.GetIsolate(), reinterpret_cast<uint16_t *>(name), NewStringType::kNormal);
+      Nan::Set(results, i, v8NameString.ToLocalChecked());
+      continue;
+    }
+    break; // FIXME: We should do better error handling here
+  }
+  info.GetReturnValue().Set(results);
+  if (hCurrentKey != first)
+    RegCloseKey(hCurrentKey);
+}
+
 void Init(v8::Handle<v8::Object> exports) {
   Nan::SetMethod(exports, "readValues", ReadValues);
+  Nan::SetMethod(exports, "enumKeys", EnumKeys);
 }
 
 }

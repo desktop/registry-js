@@ -111,3 +111,30 @@ export function enumerateValuesSafe(
     return [];
   }
 }
+
+export function enumerateKeys(
+  key: HKEY,
+  subkey?: string | null
+): ReadonlyArray<string> {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return [];
+  }
+
+  const hkey = mapToLong(key);
+
+  const result: ReadonlyArray<string> = nativeModule.enumKeys(hkey, subkey);
+
+  return result;
+}
+
+export function enumerateKeysSafe(
+  key: HKEY,
+  subkey?: string | null
+): ReadonlyArray<string> {
+  try {
+    return enumerateKeys(key, subkey);
+  } catch {
+    return [];
+  }
+}
