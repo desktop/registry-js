@@ -286,7 +286,7 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-void Init(v8::Handle<v8::Object> exports) {
+void Init(v8::Local<v8::Object> exports) {
   Nan::SetMethod(exports, "readValues", ReadValues);
   Nan::SetMethod(exports, "enumKeys", EnumKeys);
 }
