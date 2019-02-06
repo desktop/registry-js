@@ -5,6 +5,7 @@
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
   "scripts": {
+    "install": "prebuild-install || node-gyp rebuild",
     "build": "tsc",
     "pretest": "yarn build",
     "test": "jest -c jest.json",
@@ -12,30 +13,37 @@
     "postpublish": "git push --follow-tags",
     "benchmark": "ts-node benchmarks/reg.ts",
     "prettier": "prettier --write lib/*.ts test/*.ts",
-    "check-prettier": "prettier --list-different lib/*.ts test/*.ts"
+    "check-prettier": "prettier --list-different lib/*.ts test/*.ts",
+    "prebuild-node": "prebuild -t 8.9.0 -t 9.4.0 -t 10.11.0 -t 11.9.0 --strip",
+    "prebuild-node-ia32": "prebuild -t 8.9.0 -t 9.4.0 -a ia32 --strip",
+    "prebuild-electron": "prebuild -t 2.0.0 -t 3.0.0 -t 4.0.4 -r electron --strip",
+    "prebuild-electron-ia32": "prebuild -t 2.0.0 -t 3.0.0 -t 4.0.4 -r electron -a ia32 --strip",
+    "upload": "node ./script/upload.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/desktop/lean-mean-registry-client.git"
+    "url": "git+https://github.com/desktop/registry-js.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/desktop/lean-mean-registry-client/issues"
+    "url": "https://github.com/desktop/registry-js/issues"
   },
-  "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
+  "homepage": "https://github.com/desktop/registry-js#readme",
   "devDependencies": {
     "@types/benchmark": "^1.0.31",
     "@types/jest": "^24.0.0",
     "@types/node": "^10.9.1",
     "benchmark": "^2.1.4",
     "jest": "^24.0.0",
+    "prebuild": "^8.1.2",
     "prettier": "^1.14.2",
     "ts-node": "^8.0.1",
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "nan": "^2.10.0"
+    "nan": "^2.10.0",
+    "prebuild-install": "^5.2.4"
   }
 }

@@ -59,3 +59,6 @@ typings/
 
 # generated TS files
 dist/
+
+# prebuild native modules for publishing
+prebuilds/
