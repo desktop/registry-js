@@ -12,30 +12,34 @@
 using namespace Nan;
 using namespace v8;
 
-namespace {
+namespace
+{
 
 const DWORD MAX_VALUE_NAME = 16383;
 
-LPWSTR utf8ToWideChar(std::string utf8) {
+LPWSTR utf8ToWideChar(std::string utf8)
+{
   int wide_char_length = MultiByteToWideChar(CP_UTF8,
-    0,
-    utf8.c_str(),
-    -1,
-    nullptr,
-    0);
-  if (wide_char_length == 0) {
+                                             0,
+                                             utf8.c_str(),
+                                             -1,
+                                             nullptr,
+                                             0);
+  if (wide_char_length == 0)
+  {
     return nullptr;
   }
 
   LPWSTR result = new WCHAR[wide_char_length];
   if (MultiByteToWideChar(CP_UTF8,
-    0,
-    utf8.c_str(),
-    -1,
-    result,
-    wide_char_length) == 0) {
-      delete[] result;
-      return nullptr;
+                          0,
+                          utf8.c_str(),
+                          -1,
+                          result,
+                          wide_char_length) == 0)
+  {
+    delete[] result;
+    return nullptr;
   }
 
   return result;
@@ -46,7 +50,7 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
 
   // Test is ">= sizeof(wchar_t)" because otherwise 1/2 - 1 = -1 and things go kabloom:
-  if (dataLengthBytes >= sizeof(wchar_t) && data[dataLengthBytes/sizeof(wchar_t) - 1] == L'\0')
+  if (dataLengthBytes >= sizeof(wchar_t) && data[dataLengthBytes / sizeof(wchar_t) - 1] == L'\0')
   {
     // The string is (correctly) null-terminated.
     // Trim off the null terminator before handing it to NewFromTwoByte:
@@ -56,9 +60,9 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
   // ... otherwise, it's not null-terminated, but we're passing the explicit length
   // to NewFromTwoByte anyway so we'll be fine (we won't over-read).
 
-  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
-  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
-  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
+  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t *)name, NewStringType::kNormal);
+  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t *)type, NewStringType::kNormal);
+  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t *)data, NewStringType::kNormal, dataLengthBytes / sizeof(wchar_t));
 
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
@@ -69,8 +73,8 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
 
 v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DWORD data)
 {
-  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
-  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
+  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t *)name, NewStringType::kNormal);
+  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t *)type, NewStringType::kNormal);
 
   auto obj = Nan::New<v8::Object>();
   obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
@@ -79,22 +83,23 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
   return obj;
 }
 
-v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
+v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate)
+{
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
   auto retCode = RegQueryInfoKey(
-    hCurrentKey,
-    nullptr, // classname (not needed)
-    nullptr, // classname length (not needed)
-    nullptr, // reserved
-    nullptr, // can ignore subkey values
-    nullptr,
-    nullptr,
-    &cValues, // number of values for key
-    &cchMaxValue, // longest value name
-    &cbMaxValueData, // longest value data
-    nullptr, // can ignore these values
-    nullptr);
+      hCurrentKey,
+      nullptr, // classname (not needed)
+      nullptr, // classname length (not needed)
+      nullptr, // reserved
+      nullptr, // can ignore subkey values
+      nullptr,
+      nullptr,
+      &cValues,        // number of values for key
+      &cchMaxValue,    // longest value name
+      &cbMaxValueData, // longest value data
+      nullptr,         // can ignore these values
+      nullptr);
 
   if (retCode != ERROR_SUCCESS)
   {
@@ -117,14 +122,14 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     DWORD cbData = cbMaxValueData;
 
     auto retCode = RegEnumValue(
-      hCurrentKey,
-      i,
-      achValue,
-      &cchValue,
-      nullptr,
-      &lpType,
-      buffer.get(),
-      &cbData);
+        hCurrentKey,
+        i,
+        achValue,
+        &cchValue,
+        nullptr,
+        &lpType,
+        buffer.get(),
+        &cbData);
 
     if (retCode == ERROR_SUCCESS)
     {
@@ -143,7 +148,7 @@ v8::Local<v8::Array> EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        Nan::Set(results, i, CreateEntry(isolate, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
+        Nan::Set(results, i, CreateEntry(isolate, achValue, L"REG_DWORD", *reinterpret_cast<DWORD *>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -183,9 +188,9 @@ NAN_METHOD(ReadValues)
     return;
   }
 
-  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
+  auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
-  v8::String::Utf8Value subkeyArg(info[1]->ToString());
+  Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
   auto subkey = utf8ToWideChar(std::string(*subkeyArg));
 
   if (subkey == nullptr)
@@ -196,11 +201,11 @@ NAN_METHOD(ReadValues)
 
   HKEY hCurrentKey;
   LONG openKey = RegOpenKeyEx(
-    first,
-    subkey,
-    0,
-    KEY_READ | KEY_WOW64_64KEY,
-    &hCurrentKey);
+      first,
+      subkey,
+      0,
+      KEY_READ | KEY_WOW64_64KEY,
+      &hCurrentKey);
 
   if (openKey == ERROR_FILE_NOT_FOUND)
   {
@@ -221,7 +226,8 @@ NAN_METHOD(ReadValues)
   }
 }
 
-NAN_METHOD(EnumKeys) {
+NAN_METHOD(EnumKeys)
+{
   auto argCount = info.Length();
   if (argCount != 1 && argCount != 2)
   {
@@ -235,7 +241,7 @@ NAN_METHOD(EnumKeys) {
     return;
   }
 
-  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
+  auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
   HKEY hCurrentKey = first;
   if (argCount == 2 && !info[1]->IsNullOrUndefined())
@@ -245,7 +251,7 @@ NAN_METHOD(EnumKeys) {
       Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
       return;
     }
-    v8::String::Utf8Value subkeyArg(info[1]->ToString());
+    Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
     auto subkey = utf8ToWideChar(std::string(*subkeyArg));
     if (subkey == nullptr)
     {
@@ -286,11 +292,12 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-void Init(v8::Local<v8::Object> exports) {
+void Init(v8::Local<v8::Object> exports)
+{
   Nan::SetMethod(exports, "readValues", ReadValues);
   Nan::SetMethod(exports, "enumKeys", EnumKeys);
 }
 
-}
+} // namespace
 
 NODE_MODULE(registryNativeModule, Init);
