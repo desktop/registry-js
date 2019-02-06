@@ -8,7 +8,7 @@ cache:
 
 branches:
   only:
-    - master
+    - /master|^v\d+\.\d+\.\d+$/
 
 install:
   - ps: Install-Product node 10 x64
