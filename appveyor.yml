@@ -10,8 +10,6 @@ branches:
   only:
     - master
 
-skip_tags: true
-
 install:
   - ps: Install-Product node 10 x64
   - yarn install --force
