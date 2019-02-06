@@ -1,20 +1,7 @@
-os: Visual Studio 2015
+os: Visual Studio 2017
 
 platform:
   - x64
-
-environment:
-  matrix:
-    # previous LTS
-    - nodejs_version: '8'
-    # latest LTS
-    - nodejs_version: '10'
-    # Electron 3
-    - nodejs_version: '10.2.1'
-    # Electron 4
-    - nodejs_version: '10.11.0'
-    # bleeding edge
-    - nodejs_version: '11'
 
 cache:
   - node_modules
@@ -26,12 +13,19 @@ branches:
 skip_tags: true
 
 install:
-  - ps: Install-Product node $env:nodejs_version $env:platform
+  - ps: Install-Product node 10 x64
   - yarn install --force
 
 build_script:
   - yarn check-prettier
   - yarn build
+  - yarn prebuild-node
+  - yarn prebuild-node-ia32
+  - yarn prebuild-electron
+  - yarn prebuild-electron-ia32
+  - if defined APPVEYOR_REPO_TAG_NAME (npm run upload)
 
 test_script:
   - ./script/test-appveyor.bat
+
+deploy: off
