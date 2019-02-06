@@ -135,18 +135,10 @@
   version "1.0.31"
   resolved "https://registry.yarnpkg.com/@types/benchmark/-/benchmark-1.0.31.tgz#2dd3514e93396f362ba5551a7c9ff0da405c1d38"
 
-"@types/chai@^4.1.4":
-  version "4.1.7"
-  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.1.7.tgz#1b8e33b61a8c09cbe1f85133071baa0dbf9fa71a"
-
 "@types/jest@^24.0.0":
   version "24.0.0"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-24.0.0.tgz#848492026c327b3548d92be0352a545c36a21e8a"
   integrity sha512-kOafJnUTnMd7/OfEO/x3I47EHswNjn+dbz9qk3mtonr1RvKT+1FGVxnxAx08I9K8Tl7j9hpoJRE7OCf+t10fng==
-
-"@types/mocha@^5.2.5":
-  version "5.2.5"
-  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.5.tgz#8a4accfc403c124a0bafe8a9fc61a05ec1032073"
 
 "@types/node@^10.9.1":
   version "10.12.21"

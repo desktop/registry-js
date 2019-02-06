@@ -27,9 +27,7 @@
   "homepage": "https://github.com/desktop/lean-mean-registry-client#readme",
   "devDependencies": {
     "@types/benchmark": "^1.0.31",
-    "@types/chai": "^4.1.4",
     "@types/jest": "^24.0.0",
-    "@types/mocha": "^5.2.5",
     "@types/node": "^10.9.1",
     "benchmark": "^2.1.4",
     "jest": "^24.0.0",
