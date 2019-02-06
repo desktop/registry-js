@@ -183,9 +183,9 @@ NAN_METHOD(ReadValues)
     return;
   }
 
-  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
+  auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
-  v8::String::Utf8Value subkeyArg(info[1]->ToString());
+  Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
   auto subkey = utf8ToWideChar(std::string(*subkeyArg));
 
   if (subkey == nullptr)
@@ -235,7 +235,7 @@ NAN_METHOD(EnumKeys) {
     return;
   }
 
-  auto first = reinterpret_cast<HKEY>(info[0]->IntegerValue());
+  auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
   HKEY hCurrentKey = first;
   if (argCount == 2 && !info[1]->IsNullOrUndefined())
@@ -245,7 +245,7 @@ NAN_METHOD(EnumKeys) {
       Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
       return;
     }
-    v8::String::Utf8Value subkeyArg(info[1]->ToString());
+    Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
     auto subkey = utf8ToWideChar(std::string(*subkeyArg));
     if (subkey == nullptr)
     {
