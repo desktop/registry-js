@@ -19,13 +19,12 @@ install:
 build_script:
   - yarn check-prettier
   - yarn build
+  - ./script/test-appveyor.bat
   - yarn prebuild-node
   - yarn prebuild-node-ia32
   - yarn prebuild-electron
   - yarn prebuild-electron-ia32
   - if defined APPVEYOR_REPO_TAG_NAME (npm run upload)
 
-test_script:
-  - ./script/test-appveyor.bat
-
+test: off
 deploy: off
