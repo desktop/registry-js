@@ -2719,7 +2719,7 @@ mimic-response@^1.0.0:
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz#4923538878eef42063cb8a3e3b0798781487ab1b"
   integrity sha512-j5EctnkH7amfV/q5Hgmoal1g2QHFJRraOtmx0JpIqkxhBhI/lJSl1nMpQ45hVarwNETOoWEimndZ4QK0RHxuxQ==
 
-"minimatch@2 || 3", minimatch@3, minimatch@3.0.4, minimatch@^3.0.2, minimatch@^3.0.3, minimatch@^3.0.4:
+"minimatch@2 || 3", minimatch@3, minimatch@^3.0.2, minimatch@^3.0.3, minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
   dependencies:
@@ -3258,9 +3258,9 @@ prebuild-install@^5.2.4:
     which-pm-runs "^1.0.0"
 
 prebuild@^8.1.2:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/prebuild/-/prebuild-8.2.0.tgz#5e18edd195361db3602f567cb94004a0db119205"
-  integrity sha512-YoCU5R3iD2MNg1LrjZZ060EmWZZOrabMGH1BHdgOavLuRWW8bKnF1XCUNqa1nEqxk+8jpzgRedPhogQOkfGrOw==
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/prebuild/-/prebuild-8.2.1.tgz#dfb7478d36ff1c30f6b3307f28e9541a5371b033"
+  integrity sha512-cuMpEQkqmi+7H/usVtmbseX8bSHkyrjs6AaadXnV8l/a0L15bVsRL6/EGaHkjaZprMYBEjdMR/hJY1uucJ39VQ==
   dependencies:
     async "^2.1.4"
     cmake-js "^3.6.2"
@@ -3280,7 +3280,6 @@ prebuild@^8.1.2:
     nw-gyp "^3.6.3"
     osenv "^0.1.4"
     rc "^1.0.3"
-    recursive-readdir "^2.2.2"
     tar-stream "^1.2.1"
 
 prelude-ls@~1.1.2:
@@ -3449,13 +3448,6 @@ realpath-native@^1.1.0:
   integrity sha512-wlgPA6cCIIg9gKz0fgAPjnzh4yR/LnXovwuo9hvyGvx3h8nX4+/iLZplfUWasXpqD8BdnGnP5njOFjkUwPzvjA==
   dependencies:
     util.promisify "^1.0.0"
-
-recursive-readdir@^2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/recursive-readdir/-/recursive-readdir-2.2.2.tgz#9946fb3274e1628de6e36b2f6714953b4845094f"
-  integrity sha512-nRCcW9Sj7NuZwa2XvH9co8NPeXUBhZP7CRKJtU+cS6PW9FpCIFoI5ib0NT1ZrbNuPoRy0ylyCaUL8Gih4LSyFg==
-  dependencies:
-    minimatch "3.0.4"
 
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
