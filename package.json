@@ -14,7 +14,7 @@
     "benchmark": "ts-node benchmarks/reg.ts",
     "prettier": "prettier --write lib/*.ts test/*.ts",
     "check-prettier": "prettier --list-different lib/*.ts test/*.ts",
-    "prebuild-node": "prebuild -t 8.9.0 -t 9.4.0 -t 10.11.0 -t 11.9.0 --strip",
+    "prebuild-node": "prebuild -t 8.9.0 -t 9.4.0 -t 10.11.0 -t 11.9.0 -t 12.0.0 --strip",
     "prebuild-node-ia32": "prebuild -t 8.9.0 -t 9.4.0 -a ia32 --strip",
     "prebuild-electron": "prebuild -t 2.0.0 -t 3.0.0 -t 4.0.4 -r electron --strip",
     "prebuild-electron-ia32": "prebuild -t 2.0.0 -t 3.0.0 -t 4.0.4 -r electron -a ia32 --strip",
