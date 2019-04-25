@@ -37,6 +37,7 @@
     "@types/node": "^11.9.0",
     "benchmark": "^2.1.4",
     "jest": "^24.0.0",
+    "node-abi": "^2.8.0",
     "prebuild": "^8.1.2",
     "prettier": "^1.14.2",
     "ts-node": "^8.0.1",
