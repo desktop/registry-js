@@ -61,10 +61,10 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
   auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
 
   auto obj = Nan::New<v8::Object>();
-  v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked()).Check();
-  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked()).Check();
-  obj->Set(context, Nan::New("data").ToLocalChecked(), v8DataString.ToLocalChecked()).Check();
+  v8::Local<v8::Context> context = Nan::GetCurrentContext();
+  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
+  obj->Set(context, Nan::New("data").ToLocalChecked(), v8DataString.ToLocalChecked());
   return obj;
 }
 
@@ -74,10 +74,10 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
   auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
 
   auto obj = Nan::New<v8::Object>();
-  v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked()).Check();
-  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked()).Check();
-  obj->Set(context, Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data))).Check();
+  v8::Local<v8::Context> context = Nan::GetCurrentContext();
+  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
+  obj->Set(context, Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data)));
   return obj;
 }
 
