@@ -288,11 +288,15 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-void Init(v8::Local<v8::Object> exports) {
-  Nan::SetMethod(exports, "readValues", ReadValues);
-  Nan::SetMethod(exports, "enumKeys", EnumKeys);
+NAN_MODULE_INIT(Init) {
+  Nan::SetMethod(target, "readValues", ReadValues);
+  Nan::SetMethod(target, "enumKeys", EnumKeys);
 }
 
 }
 
+#if NODE_MAJOR_VERSION >= 10
+NAN_MODULE_WORKER_ENABLED(registryNativeModule, Init)
+#else
 NODE_MODULE(registryNativeModule, Init);
+#endif
