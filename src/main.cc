@@ -61,9 +61,10 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LP
   auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
 
   auto obj = Nan::New<v8::Object>();
-  obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
-  obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
-  obj->Set(Nan::New("data").ToLocalChecked(), v8DataString.ToLocalChecked());
+  v8::Local<v8::Context> context = Nan::GetCurrentContext();
+  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
+  obj->Set(context, Nan::New("data").ToLocalChecked(), v8DataString.ToLocalChecked());
   return obj;
 }
 
@@ -73,9 +74,10 @@ v8::Local<v8::Object> CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DW
   auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
 
   auto obj = Nan::New<v8::Object>();
-  obj->Set(Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
-  obj->Set(Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
-  obj->Set(Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data)));
+  v8::Local<v8::Context> context = Nan::GetCurrentContext();
+  obj->Set(context, Nan::New("name").ToLocalChecked(), v8NameString.ToLocalChecked());
+  obj->Set(context, Nan::New("type").ToLocalChecked(), v8TypeString.ToLocalChecked());
+  obj->Set(context, Nan::New("data").ToLocalChecked(), Nan::New(static_cast<uint32_t>(data)));
   return obj;
 }
 
@@ -286,11 +288,15 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-void Init(v8::Local<v8::Object> exports) {
-  Nan::SetMethod(exports, "readValues", ReadValues);
-  Nan::SetMethod(exports, "enumKeys", EnumKeys);
+NAN_MODULE_INIT(Init) {
+  Nan::SetMethod(target, "readValues", ReadValues);
+  Nan::SetMethod(target, "enumKeys", EnumKeys);
 }
 
 }
 
+#if NODE_MAJOR_VERSION >= 10
+NAN_MODULE_WORKER_ENABLED(registryNativeModule, Init)
+#else
 NODE_MODULE(registryNativeModule, Init);
+#endif
