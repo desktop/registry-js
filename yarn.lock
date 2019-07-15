@@ -882,7 +882,7 @@ cliui@^4.0.0:
     strip-ansi "^4.0.0"
     wrap-ansi "^2.0.0"
 
-cmake-js@^5.2.0:
+cmake-js@~5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/cmake-js/-/cmake-js-5.2.0.tgz#6d72014269a5d23a754a6d170cde9ed2d75eb411"
   integrity sha512-/HLhzoBEOLKGdE1FLwH5ggzRt67AWTb4IErg4rm+bTC+R0DKUobojDyp17dSswDVPosdoPmHXjKxbJiyBZfQeg==
@@ -3305,12 +3305,12 @@ prebuild-install@^5.2.4:
     which-pm-runs "^1.0.0"
 
 prebuild@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/prebuild/-/prebuild-9.0.0.tgz#67696e64a54dbc5d7856eccfbbfc3bec03ef5343"
-  integrity sha512-i3S7AubcNg93rYU1HsiKZZG6ojE2WGZB7hHBmHinFrFfI7gyx/mJD+SJjSYNF/LPTttyulEtQ6KLtmZ1Efkn7A==
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/prebuild/-/prebuild-9.0.1.tgz#66b28213f8a478239f6b886e6310c9ed5a5e8348"
+  integrity sha512-tYlNDD244R4jpgLJiT8zWFYLy0ZgzSEsu8d/Wnq70WEOzPTndU88ElwfBGdWXY+/6uL3RTWcGqiwLGdJD1yhoA==
   dependencies:
     async "^2.1.4"
-    cmake-js "^5.2.0"
+    cmake-js "~5.2.0"
     detect-libc "^1.0.3"
     execspawn "^1.0.1"
     ghreleases "^2.0.0"
