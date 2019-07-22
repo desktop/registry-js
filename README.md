@@ -43,6 +43,14 @@ the Win32 APIs directly.
 See the documentation under the
 [`docs`](https://github.com/desktop/registry-js/tree/master/docs) folder.
 
+## Supported versions
+
+Each release of `registry-js` includes prebuilt binaries for the versions of
+Node and Electron that are actively supported by these projects. Please refer
+to the release documentation for [Node](https://github.com/nodejs/Release) and
+[Electron](https://electronjs.org/docs/tutorial/support) to see what is
+actively supported currently.
+
 ## Contributing
 
 Read the [Setup](https://github.com/desktop/registry-js/blob/master/docs/index.md#setup)
