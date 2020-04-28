@@ -9,7 +9,7 @@ branches:
 
 install:
   # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild 12) $env:PLATFORM
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild 13) $env:PLATFORM
   - yarn install --force
 
 build_script:
