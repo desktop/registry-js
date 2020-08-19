@@ -1,5 +1,6 @@
 # ignore everything unrelated to the source code
 .vscode
+.prettierrc
 benchmarks/
 docs/
 lib/
@@ -12,6 +13,8 @@ tsconfig.json
 vendor/
 yarn-error.log
 *.tgz
+build
+jest.json
 
 # just include these specific artifacts
 # everything else should be compiled by the client
