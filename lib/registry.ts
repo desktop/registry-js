@@ -36,7 +36,7 @@ export enum RegistryValueType {
   REG_NONE = "REG_NONE",
   REG_QWORD = "REG_QWORD",
   REG_QWORD_LITTLE_ENDIAN = "REG_QWORD_LITTLE_ENDIAN",
-  REG_SZ = "REG_SZ"
+  REG_SZ = "REG_SZ",
 }
 
 export type RegistryStringEntry = {
@@ -64,7 +64,7 @@ export enum HKEY {
   HKEY_PERFORMANCE_DATA = "HKEY_PERFORMANCE_DATA",
   HKEY_PERFORMANCE_TEXT = "HKEY_PERFORMANCE_TEXT",
   HKEY_PERFORMANCE_NLSTEXT = "HKEY_PERFORMANCE_NLSTEXT",
-  HKEY_USERS = "HKEY_USERS"
+  HKEY_USERS = "HKEY_USERS",
 }
 
 function mapToLong(key: HKEY): number {
