@@ -1,6 +1,6 @@
 # ignore everything unrelated to the source code
 .vscode
-.prettierrc
+.prettierrc.yml
 benchmarks/
 docs/
 lib/
