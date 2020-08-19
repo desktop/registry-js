@@ -1,0 +1,6 @@
+singleQuote: false
+trailingComma: es5
+semi: true
+proseWrap: always
+endOfLine: auto
+arrowParens: avoid
