@@ -19,6 +19,7 @@ build_script:
   - yarn prebuild-node
   - yarn prebuild-node-ia32
   - yarn prebuild-electron
+  - yarn prebuild-electron-arm64
   - yarn prebuild-electron-ia32
   - if defined APPVEYOR_REPO_TAG_NAME (npm run upload)
 
