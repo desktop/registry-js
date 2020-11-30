@@ -7,7 +7,6 @@ lib/
 script/
 test/
 .gitattributes
-appveyor.yml
 tsconfig.json
 .yarnrc
 vendor/
