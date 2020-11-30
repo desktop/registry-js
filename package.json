@@ -9,7 +9,7 @@
     "build": "tsc",
     "pretest": "yarn build",
     "test": "jest -c jest.json",
-    "prepublish": "yarn build && yarn test",
+    "prepublishOnly": "yarn build && yarn test",
     "postpublish": "git push --follow-tags",
     "benchmark": "ts-node benchmarks/reg.ts",
     "prettier": "prettier --write lib/*.ts test/*.ts",
