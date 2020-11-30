@@ -7,7 +7,6 @@ lib/
 script/
 test/
 .gitattributes
-appveyor.yml
 tsconfig.json
 .yarnrc
 vendor/
@@ -15,7 +14,7 @@ yarn-error.log
 *.tgz
 build
 jest.json
-
-# just include these specific artifacts
-# everything else should be compiled by the client
-!dist/lib/*
+.node-version
+.github
+src
+dist/test
