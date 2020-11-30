@@ -48,8 +48,5 @@
   "dependencies": {
     "nan": "^2.14.1",
     "prebuild-install": "^5.3.5"
-  },
-  "resolutions": {
-    "**/node-abi": "2.19.1"
   }
 }
