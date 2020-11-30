@@ -39,8 +39,8 @@
     "@types/node": "^12.0.0",
     "benchmark": "^2.1.4",
     "jest": "^26.4.2",
-    "node-abi": "2.19.1",
-    "prebuild": "^10.0.0",
+    "node-abi": "^2.19.3",
+    "prebuild": "^10.0.1",
     "prettier": "^2.0.5",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.0"
