@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2019]
+        include:
+          - os: windows-2019
+            friendlyName: Windows
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Install Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: 12
+      - name: Install and build dependencies
+        run: yarn
+      - name: Lint
+        run: yarn check-prettier
+      - name: Build
+        run: yarn build
+      - name: Test
+        run: yarn test
+      - name: Prebuild
+        run: yarn prebuild-all
+      - name: Publish
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        run: yarn upload
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
