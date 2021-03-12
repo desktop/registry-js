@@ -138,3 +138,61 @@ export function enumerateKeysSafe(
     return []
   }
 }
+
+export function createKey(
+  key:HKEY,
+  keyPath?: string | null
+): boolean {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return false
+  }
+  const hkey = mapToLong(key)
+
+  const result: boolean = nativeModule.createKey(hkey, keyPath)
+
+  return result
+}
+
+export function createKeySafe(
+  key: HKEY,
+  keyPath?: string | null
+): boolean {
+  try {
+    return createKey(key, keyPath)
+  } catch {
+    return false
+  }
+}
+
+export function setValue(
+  key: HKEY,
+  keyPath?: string | null,
+  valueName?: string | null,
+  valueType?: RegistryValueType | null,
+  valueData?: any
+):boolean {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return false
+  }
+  const hkey = mapToLong(key)
+
+  const result: boolean = nativeModule.setValue(hkey, keyPath, valueName, valueType, valueData)
+
+  return result
+}
+
+export function setValueSafe(
+  key: HKEY,
+  keyPath?: string | null,
+  valueName?: string | null,
+  valueType?: RegistryValueType | null,
+  valueData?: any
+):boolean {
+  try {
+    return setValue(key, keyPath, valueName, valueType, valueData)
+  } catch {
+    return false
+  }
+}
