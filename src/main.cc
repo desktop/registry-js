@@ -333,12 +333,12 @@ NAN_METHOD(EnumKeys) {
       if (openKey != ERROR_SUCCESS)
       {
         // FIXME: the key does not exist, just return an empty array for now
-        info.GetReturnValue().Set(v8::False());
+        info.GetReturnValue().Set(New<v8::Boolean>(false));
         return;
       }
     }
 
-    info.GetReturnValue().Set(v8::True());
+    info.GetReturnValue().Set(New<v8::Boolean>(true));
     if (hCurrentKey != first)
       RegCloseKey(hCurrentKey);
   }
@@ -417,7 +417,7 @@ NAN_METHOD(EnumKeys) {
         if (openKey == ERROR_FILE_NOT_FOUND)
         {
           // the key does not exist,
-          info.GetReturnValue().Set(v8::False());
+          info.GetReturnValue().Set(New<v8::Boolean>(false));
           return;
         }
         else if (openKey == ERROR_SUCCESS)
@@ -435,7 +435,7 @@ NAN_METHOD(EnumKeys) {
           if (setValue != ERROR_SUCCESS)
           {
             // FIXME: the key does not exist, just return an empty array for now
-            info.GetReturnValue().Set(v8::False());
+            info.GetReturnValue().Set(New<v8::Boolean>(false));
             return;
           }
           RegCloseKey(hOpenKey);
@@ -448,7 +448,7 @@ NAN_METHOD(EnumKeys) {
         }
       }
 
-      info.GetReturnValue().Set(v8::True());
+      info.GetReturnValue().Set(New<v8::Boolean>(true));
       if (hCurrentKey != first)
         RegCloseKey(hCurrentKey);
     }
