@@ -288,11 +288,139 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-NAN_MODULE_INIT(Init) {
-  Nan::SetMethod(target, "readValues", ReadValues);
-  Nan::SetMethod(target, "enumKeys", EnumKeys);
-}
+  NAN_METHOD(CreateKey)
+  {
+    auto argCount = info.Length();
+    if (argCount != 1 && argCount != 2)
+    {
+      Nan::ThrowTypeError("Wrong number of arguments");
+      return;
+    }
 
+    if (!info[0]->IsNumber())
+    {
+      Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
+      return;
+    }
+
+    auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
+
+    HKEY hCurrentKey = first;
+    if (argCount == 2 && !info[1]->IsNullOrUndefined())
+    {
+      if (!info[1]->IsString())
+      {
+        Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+        return;
+      }
+      Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+      auto keyPath = utf8ToWideChar(std::string(*subkeyArg));
+      if (keyPath == nullptr)
+      {
+        Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+        return;
+      }
+      auto openKey = RegCreateKeyEx(
+          first,
+          keyPath,
+          NULL,
+          NULL,
+          REG_OPTION_NON_VOLATILE,
+          KEY_READ | KEY_WOW64_64KEY,
+          NULL,
+          &hCurrentKey,
+          NULL);
+      if (openKey != ERROR_SUCCESS)
+      {
+        // FIXME: the key does not exist, just return an empty array for now
+        info.GetReturnValue().Set(v8::False());
+        return;
+      }
+    }
+
+    info.GetReturnValue().Set(v8::True());
+    if (hCurrentKey != first)
+      RegCloseKey(hCurrentKey);
+  }
+
+  NAN_METHOD(SetValue)
+  {
+    {
+      auto argCount = info.Length();
+      if (argCount < 4)
+      {
+        Nan::ThrowTypeError("Wrong number of arguments");
+        return;
+      }
+
+      if (!info[0]->IsNumber())
+      {
+        Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
+        return;
+      }
+
+      if (!info[1]->IsString())
+      {
+        Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+        return;
+      }
+
+      if (!info[2]->IsString())
+      {
+        Nan::ThrowTypeError("A number was expected for the third argument, but wasn't received.");
+        return;
+      }
+
+      auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
+
+      HKEY hCurrentKey = first;
+      if (argCount == 4 && !info[1]->IsNullOrUndefined() && !info[2]->IsNullOrUndefined())
+      {
+        Nan::Utf8String nameArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        auto valueName = utf8ToWideChar(std::string(*nameArg));
+        if (valueName == nullptr)
+        {
+          Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+          return;
+        }
+
+        Nan::Utf8String typeArg(Nan::To<v8::String>(info[3]).ToLocalChecked());
+        auto valueType = utf8ToWideChar(std::string(*typeArg));
+        if (valueType == nullptr)
+        {
+          Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
+          return;
+        }
+        auto valueData = info[3];
+
+        auto setValue = RegSetValueEx(
+            first,
+            valueName,
+            nullptr,
+            valueType,
+            (BYTE *)valueData,
+            nullptr);
+
+        if (setValue != ERROR_SUCCESS)
+        {
+          // FIXME: the key does not exist, just return an empty array for now
+          info.GetReturnValue().Set(v8::False());
+          return;
+        }
+      }
+
+      info.GetReturnValue().Set(v8::True());
+      if (hCurrentKey != first)
+        RegCloseKey(hCurrentKey);
+    }
+
+    NAN_MODULE_INIT(Init)
+    {
+      Nan::SetMethod(target, "readValues", ReadValues);
+      Nan::SetMethod(target, "enumKeys", EnumKeys);
+      Nan::SetMethod(target, "createKey", CreateKey);
+      Nan::SetMethod(target, "setValue", SetValue);
+    }
 }
 
 #if NODE_MAJOR_VERSION >= 10
