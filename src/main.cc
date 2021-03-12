@@ -323,13 +323,13 @@ NAN_METHOD(EnumKeys) {
       auto openKey = RegCreateKeyEx(
           first,
           keyPath,
-          NULL,
-          NULL,
+          0,
+          nullptr,
           REG_OPTION_NON_VOLATILE,
           KEY_READ | KEY_WOW64_64KEY,
-          NULL,
+          nullptr,
           &hCurrentKey,
-          NULL);
+          nullptr);
       if (openKey != ERROR_SUCCESS)
       {
         // FIXME: the key does not exist, just return an empty array for now
