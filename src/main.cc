@@ -347,7 +347,7 @@ NAN_METHOD(EnumKeys) {
   {
     {
       auto argCount = info.Length();
-      if (argCount < 4)
+      if (argCount < 5)
       {
         Nan::ThrowTypeError("Wrong number of arguments");
         return;
@@ -371,16 +371,30 @@ NAN_METHOD(EnumKeys) {
         return;
       }
 
+      if (!info[3]->IsString())
+      {
+        Nan::ThrowTypeError("A number was expected for the fourth argument, but wasn't received.");
+        return;
+      }
+
       auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
       HKEY hCurrentKey = first;
-      if (argCount == 4 && !info[1]->IsNullOrUndefined() && !info[2]->IsNullOrUndefined())
+      if (argCount == 5 && !info[1]->IsNullOrUndefined() && !info[2]->IsNullOrUndefined())
       {
-        Nan::Utf8String nameArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+        if (subkey == nullptr)
+        {
+          Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+          return;
+        }
+
+        Nan::Utf8String nameArg(Nan::To<v8::String>(info[2]).ToLocalChecked());
         auto valueName = utf8ToWideChar(std::string(*nameArg));
         if (valueName == nullptr)
         {
-          Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+          Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
           return;
         }
 
@@ -391,21 +405,46 @@ NAN_METHOD(EnumKeys) {
           Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
           return;
         }
-        auto valueData = info[3];
 
-        auto setValue = RegSetValueEx(
+        HKEY hOpenKey;
+        LONG openKey = RegOpenKeyEx(
             first,
-            valueName,
-            nullptr,
-            valueType,
-            (BYTE *)valueData,
-            nullptr);
+            subkey,
+            0,
+            KEY_READ | KEY_WOW64_64KEY,
+            &hOpenKey);
 
-        if (setValue != ERROR_SUCCESS)
+        if (openKey == ERROR_FILE_NOT_FOUND)
         {
-          // FIXME: the key does not exist, just return an empty array for now
+          // the key does not exist,
           info.GetReturnValue().Set(v8::False());
           return;
+        }
+        else if (openKey == ERROR_SUCCESS)
+        {
+          auto valueData = info[4];
+
+          auto setValue = RegSetValueEx(
+              hOpenKey,
+              valueName,
+              0,
+              valueType,
+              (BYTE *)valueData,
+              nullptr);
+
+          if (setValue != ERROR_SUCCESS)
+          {
+            // FIXME: the key does not exist, just return an empty array for now
+            info.GetReturnValue().Set(v8::False());
+            return;
+          }
+          RegCloseKey(hOpenKey);
+        }
+        else
+        {
+          char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
+          sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+          Nan::ThrowError(errorMessage);
         }
       }
 
