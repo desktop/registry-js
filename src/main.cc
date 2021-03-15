@@ -471,14 +471,15 @@ NAN_METHOD(EnumKeys) {
       if (hCurrentKey != first)
         RegCloseKey(hCurrentKey);
     }
+  }
 
-    NAN_MODULE_INIT(Init)
-    {
-      Nan::SetMethod(target, "readValues", ReadValues);
-      Nan::SetMethod(target, "enumKeys", EnumKeys);
-      Nan::SetMethod(target, "createKey", CreateKey);
-      Nan::SetMethod(target, "setValue", SetValue);
-    }
+  NAN_MODULE_INIT(Init)
+  {
+    Nan::SetMethod(target, "readValues", ReadValues);
+    Nan::SetMethod(target, "enumKeys", EnumKeys);
+    Nan::SetMethod(target, "createKey", CreateKey);
+    Nan::SetMethod(target, "setValue", SetValue);
+  }
 }
 
 #if NODE_MAJOR_VERSION >= 10
