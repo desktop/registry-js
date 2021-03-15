@@ -380,7 +380,7 @@ NAN_METHOD(EnumKeys) {
       auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
       HKEY hCurrentKey = first;
-      if (argCount == 5 && !info[1]->IsNullOrUndefined() && !info[2]->IsNullOrUndefined())
+      if (argCount == 5 && !info[1]->IsNullOrUndefined() && !info[2]->IsNullOrUndefined() && !info[3]->IsNullOrUndefined())
       {
         Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
         auto subkey = utf8ToWideChar(std::string(*subkeyArg));
@@ -411,44 +411,55 @@ NAN_METHOD(EnumKeys) {
             first,
             subkey,
             0,
-            KEY_READ | KEY_WOW64_64KEY,
+            KEY_WRITE | KEY_WOW64_64KEY,
             &hOpenKey);
 
         if (openKey == ERROR_FILE_NOT_FOUND)
         {
-          // the key does not exist,
-          info.GetReturnValue().Set(New<v8::Boolean>(false));
+          Nan::ThrowTypeError("RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND");
           return;
         }
         else if (openKey == ERROR_SUCCESS)
         {
-          long dwordType;
           long setValue = ERROR_INVALID_HANDLE;
 
-          if (valueType == L"REG_SZ")
+          if (wcscmp(valueType, L"REG_SZ") == 0)
           {
-            Nan::Utf8String typeArg(Nan::To<v8::String>(info[3]).ToLocalChecked());
+            Nan::Utf8String typeArg(Nan::To<v8::String>(info[4]).ToLocalChecked());
             auto valueData = utf8ToWideChar(std::string(*typeArg));
-            dwordType = REG_SZ;
+            if (valueData == nullptr)
+            {
+              Nan::ThrowTypeError("A string was expected for the fifth argument, but could not be parsed.");
+              return;
+            }
+            int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
             setValue = RegSetValueEx(
                 hOpenKey,
                 valueName,
                 0,
-                dwordType,
+                REG_SZ,
                 (const BYTE *)valueData,
+                datalength);
+          }
+          else if (wcscmp(valueType, L"REG_DWORD") == 0)
+          {
+            int dwordData = Nan::To<int>(info[4]).FromJust();
+            DWORD valueData = static_cast<DWORD>(dwordData);
+
+            setValue = RegSetValueEx(
+                hOpenKey,
+                valueName,
+                0,
+                REG_DWORD,
+                (const BYTE *)&valueData,
                 sizeof(valueData));
           }
-          else if (valueType == L"REG_DWORD")
+          else
           {
-            auto valueData = (const DWORD *)(Nan::To<int64_t>(info[3]).FromJust());
-            dwordType = REG_DWORD;
-            setValue = RegSetValueEx(
-                hOpenKey,
-                valueName,
-                0,
-                dwordType,
-                (const BYTE *)valueData,
-                sizeof(valueData));
+            char errorMessage[255];
+            sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
+            Nan::ThrowTypeError(errorMessage);
+            return;
           }
 
           if (setValue != ERROR_SUCCESS)
@@ -457,19 +468,22 @@ NAN_METHOD(EnumKeys) {
             info.GetReturnValue().Set(New<v8::Boolean>(false));
             return;
           }
+          info.GetReturnValue().Set(New<v8::Boolean>(true));
           RegCloseKey(hOpenKey);
         }
         else
         {
           char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
           sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
-          Nan::ThrowError(errorMessage);
+          Nan::ThrowTypeError(errorMessage);
+          return;
         }
       }
-
-      info.GetReturnValue().Set(New<v8::Boolean>(true));
-      if (hCurrentKey != first)
-        RegCloseKey(hCurrentKey);
+      else
+      {
+        Nan::ThrowTypeError("An argument has invalid format");
+        return;
+      }
     }
   }
 

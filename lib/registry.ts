@@ -170,6 +170,14 @@ export function setValue(
     // this code is a no-op when the module is missing
     return false
   }
+
+  if (
+    valueType != RegistryValueType.REG_SZ &&
+    valueType != RegistryValueType.REG_DWORD
+  ) {
+    // not implemented yet
+    return false
+  }
   const hkey = mapToLong(key)
 
   const result: boolean = nativeModule.setValue(
