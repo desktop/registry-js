@@ -422,15 +422,34 @@ NAN_METHOD(EnumKeys) {
         }
         else if (openKey == ERROR_SUCCESS)
         {
-          auto valueData = info[4];
+          long dwordType;
+          long setValue = ERROR_INVALID_HANDLE;
 
-          auto setValue = RegSetValueEx(
-              hOpenKey,
-              valueName,
-              0,
-              valueType,
-              (BYTE *)valueData,
-              nullptr);
+          if (valueType == L"REG_SZ")
+          {
+            Nan::Utf8String typeArg(Nan::To<v8::String>(info[3]).ToLocalChecked());
+            auto valueData = utf8ToWideChar(std::string(*typeArg));
+            dwordType = REG_SZ;
+            setValue = RegSetValueEx(
+                hOpenKey,
+                valueName,
+                0,
+                dwordType,
+                (const BYTE *)valueData,
+                sizeof(valueData));
+          }
+          else if (valueType == L"REG_DWORD")
+          {
+            auto valueData = (const DWORD *)(Nan::To<int64_t>(info[3]).FromJust());
+            dwordType = REG_DWORD;
+            setValue = RegSetValueEx(
+                hOpenKey,
+                valueName,
+                0,
+                dwordType,
+                (const BYTE *)valueData,
+                sizeof(valueData));
+          }
 
           if (setValue != ERROR_SUCCESS)
           {
