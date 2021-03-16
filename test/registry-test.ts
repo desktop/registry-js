@@ -104,7 +104,7 @@ if (process.platform === 'win32') {
           'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
           'ValueTestSz',
           RegistryValueType.REG_SZ,
-          'Value 123 !'
+          'Value 123 ! test@test.com (456)'
         )
       } catch (e) {
         console.log(e)
@@ -118,6 +118,14 @@ if (process.platform === 'win32') {
       const result = createKey(
         HKEY.HKEY_CURRENT_USER,
         'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\UnitTests'
+      )
+      expect(result).toBeTruthy()
+    })
+
+    it('can create a registry key in WOW6432Node', () => {
+      const result = createKey(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\WOW6432Node\\UnitTests'
       )
       expect(result).toBeTruthy()
     })
