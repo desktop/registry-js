@@ -314,15 +314,15 @@ NAN_METHOD(EnumKeys) {
         return;
       }
       Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
-      auto keyPath = utf8ToWideChar(std::string(*subkeyArg));
-      if (keyPath == nullptr)
+      auto subKey = utf8ToWideChar(std::string(*subkeyArg));
+      if (subKey == nullptr)
       {
         Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
         return;
       }
-      auto openKey = RegCreateKeyEx(
+      auto newKey = RegCreateKeyEx(
           first,
-          keyPath,
+          subKey,
           0,
           nullptr,
           REG_OPTION_NON_VOLATILE,
@@ -330,7 +330,7 @@ NAN_METHOD(EnumKeys) {
           nullptr,
           &hCurrentKey,
           nullptr);
-      if (openKey != ERROR_SUCCESS)
+      if (newKey != ERROR_SUCCESS)
       {
         // FIXME: the key does not exist, just return an empty array for now
         info.GetReturnValue().Set(New<v8::Boolean>(false));

@@ -139,21 +139,21 @@ export function enumerateKeysSafe(
   }
 }
 
-export function createKey(key: HKEY, keyPath?: string | null): boolean {
+export function createKey(key: HKEY, subkey?: string | null): boolean {
   if (!nativeModule) {
     // this code is a no-op when the module is missing
     return false
   }
   const hkey = mapToLong(key)
 
-  const result: boolean = nativeModule.createKey(hkey, keyPath)
+  const result: boolean = nativeModule.createKey(hkey, subkey)
 
   return result
 }
 
-export function createKeySafe(key: HKEY, keyPath?: string | null): boolean {
+export function createKeySafe(key: HKEY, subkey?: string | null): boolean {
   try {
-    return createKey(key, keyPath)
+    return createKey(key, subkey)
   } catch {
     return false
   }
@@ -161,9 +161,9 @@ export function createKeySafe(key: HKEY, keyPath?: string | null): boolean {
 
 export function setValue(
   key: HKEY,
-  keyPath?: string | null,
-  valueName?: string | null,
-  valueType?: RegistryValueType | null,
+  subkey: string,
+  valueName: string,
+  valueType: RegistryValueType,
   valueData?: any
 ): boolean {
   if (!nativeModule) {
@@ -182,7 +182,7 @@ export function setValue(
 
   const result: boolean = nativeModule.setValue(
     hkey,
-    keyPath,
+    subkey,
     valueName,
     valueType,
     valueData
@@ -193,13 +193,13 @@ export function setValue(
 
 export function setValueSafe(
   key: HKEY,
-  keyPath?: string | null,
-  valueName?: string | null,
-  valueType?: RegistryValueType | null,
+  subkey: string,
+  valueName: string,
+  valueType: RegistryValueType,
   valueData?: any
 ): boolean {
   try {
-    return setValue(key, keyPath, valueName, valueType, valueData)
+    return setValue(key, subkey, valueName, valueType, valueData)
   } catch {
     return false
   }
