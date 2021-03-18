@@ -291,7 +291,7 @@ NAN_METHOD(EnumKeys) {
   NAN_METHOD(CreateKey)
   {
     auto argCount = info.Length();
-    if (argCount != 1 && argCount != 2)
+    if (argCount != 2)
     {
       Nan::ThrowTypeError("Wrong number of arguments");
       return;
@@ -303,16 +303,17 @@ NAN_METHOD(EnumKeys) {
       return;
     }
 
+    if (!info[1]->IsString())
+    {
+      Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+      return;
+    }
+
     auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
     HKEY hCurrentKey = first;
-    if (argCount == 2 && !info[1]->IsNullOrUndefined())
+    if (!info[1]->IsNullOrUndefined())
     {
-      if (!info[1]->IsString())
-      {
-        Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
-        return;
-      }
       Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
       auto subKey = utf8ToWideChar(std::string(*subkeyArg));
       if (subKey == nullptr)
