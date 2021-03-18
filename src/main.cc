@@ -288,10 +288,67 @@ NAN_METHOD(EnumKeys) {
     RegCloseKey(hCurrentKey);
 }
 
-  NAN_METHOD(CreateKey)
+NAN_METHOD(CreateKey)
+{
+  auto argCount = info.Length();
+  if (argCount != 2)
+  {
+    Nan::ThrowTypeError("Wrong number of arguments");
+    return;
+  }
+
+  if (!info[0]->IsNumber())
+  {
+    Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
+    return;
+  }
+
+  if (!info[1]->IsString())
+  {
+    Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+    return;
+  }
+
+  auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
+
+  HKEY hCurrentKey = first;
+  if (!info[1]->IsNullOrUndefined())
+  {
+    Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    auto subKey = utf8ToWideChar(std::string(*subkeyArg));
+    if (subKey == nullptr)
+    {
+      Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+      return;
+    }
+    auto newKey = RegCreateKeyEx(
+        first,
+        subKey,
+        0,
+        nullptr,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WOW64_64KEY,
+        nullptr,
+        &hCurrentKey,
+        nullptr);
+    if (newKey != ERROR_SUCCESS)
+    {
+      // FIXME: the key does not exist, just return an empty array for now
+      info.GetReturnValue().Set(New<v8::Boolean>(false));
+      return;
+    }
+  }
+
+  info.GetReturnValue().Set(New<v8::Boolean>(true));
+  if (hCurrentKey != first)
+    RegCloseKey(hCurrentKey);
+}
+
+NAN_METHOD(SetValue)
+{
   {
     auto argCount = info.Length();
-    if (argCount != 2)
+    if (argCount != 5)
     {
       Nan::ThrowTypeError("Wrong number of arguments");
       return;
@@ -303,190 +360,133 @@ NAN_METHOD(EnumKeys) {
       return;
     }
 
-    if (!info[1]->IsString())
+    if (!info[1]->IsString() || info[1]->IsNullOrUndefined())
     {
       Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
+      return;
+    }
+
+    if (!info[2]->IsString() || info[2]->IsNullOrUndefined())
+    {
+      Nan::ThrowTypeError("A number was expected for the third argument, but wasn't received.");
+      return;
+    }
+
+    if (!info[3]->IsString() || info[3]->IsNullOrUndefined())
+    {
+      Nan::ThrowTypeError("A number was expected for the fourth argument, but wasn't received.");
       return;
     }
 
     auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
 
     HKEY hCurrentKey = first;
-    if (!info[1]->IsNullOrUndefined())
+    Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+    if (subkey == nullptr)
     {
-      Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
-      auto subKey = utf8ToWideChar(std::string(*subkeyArg));
-      if (subKey == nullptr)
+      Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+      return;
+    }
+
+    Nan::Utf8String nameArg(Nan::To<v8::String>(info[2]).ToLocalChecked());
+    auto valueName = utf8ToWideChar(std::string(*nameArg));
+    if (valueName == nullptr)
+    {
+      Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
+      return;
+    }
+
+    Nan::Utf8String typeArg(Nan::To<v8::String>(info[3]).ToLocalChecked());
+    auto valueType = utf8ToWideChar(std::string(*typeArg));
+    if (valueType == nullptr)
+    {
+      Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
+      return;
+    }
+
+    HKEY hOpenKey;
+    LONG openKey = RegOpenKeyEx(
+        first,
+        subkey,
+        0,
+        KEY_WRITE | KEY_WOW64_64KEY,
+        &hOpenKey);
+
+    if (openKey == ERROR_FILE_NOT_FOUND)
+    {
+      Nan::ThrowTypeError("RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND");
+      return;
+    }
+    else if (openKey == ERROR_SUCCESS)
+    {
+      long setValue = ERROR_INVALID_HANDLE;
+
+      if (wcscmp(valueType, L"REG_SZ") == 0)
       {
-        Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
+        Nan::Utf8String typeArg(Nan::To<v8::String>(info[4]).ToLocalChecked());
+        auto valueData = utf8ToWideChar(std::string(*typeArg));
+        if (valueData == nullptr)
+        {
+          Nan::ThrowTypeError("A string was expected for the fifth argument, but could not be parsed.");
+          return;
+        }
+        int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
+        setValue = RegSetValueEx(
+            hOpenKey,
+            valueName,
+            0,
+            REG_SZ,
+            (const BYTE *)valueData,
+            datalength);
+      }
+      else if (wcscmp(valueType, L"REG_DWORD") == 0)
+      {
+        int dwordData = Nan::To<int>(info[4]).FromJust();
+        DWORD valueData = static_cast<DWORD>(dwordData);
+
+        setValue = RegSetValueEx(
+            hOpenKey,
+            valueName,
+            0,
+            REG_DWORD,
+            (const BYTE *)&valueData,
+            sizeof(valueData));
+      }
+      else
+      {
+        char errorMessage[255];
+        sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
+        Nan::ThrowTypeError(errorMessage);
         return;
       }
-      auto newKey = RegCreateKeyEx(
-          first,
-          subKey,
-          0,
-          nullptr,
-          REG_OPTION_NON_VOLATILE,
-          KEY_READ | KEY_WOW64_64KEY,
-          nullptr,
-          &hCurrentKey,
-          nullptr);
-      if (newKey != ERROR_SUCCESS)
+
+      if (setValue != ERROR_SUCCESS)
       {
         // FIXME: the key does not exist, just return an empty array for now
         info.GetReturnValue().Set(New<v8::Boolean>(false));
         return;
       }
+      info.GetReturnValue().Set(New<v8::Boolean>(true));
+      RegCloseKey(hOpenKey);
     }
-
-    info.GetReturnValue().Set(New<v8::Boolean>(true));
-    if (hCurrentKey != first)
-      RegCloseKey(hCurrentKey);
-  }
-
-  NAN_METHOD(SetValue)
-  {
+    else
     {
-      auto argCount = info.Length();
-      if (argCount != 5)
-      {
-        Nan::ThrowTypeError("Wrong number of arguments");
-        return;
-      }
-
-      if (!info[0]->IsNumber())
-      {
-        Nan::ThrowTypeError("A number was expected for the first argument, but wasn't received.");
-        return;
-      }
-
-      if (!info[1]->IsString() || info[1]->IsNullOrUndefined())
-      {
-        Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
-        return;
-      }
-
-      if (!info[2]->IsString() || info[2]->IsNullOrUndefined())
-      {
-        Nan::ThrowTypeError("A number was expected for the third argument, but wasn't received.");
-        return;
-      }
-
-      if (!info[3]->IsString() || info[3]->IsNullOrUndefined())
-      {
-        Nan::ThrowTypeError("A number was expected for the fourth argument, but wasn't received.");
-        return;
-      }
-
-      auto first = reinterpret_cast<HKEY>(Nan::To<int64_t>(info[0]).FromJust());
-
-      HKEY hCurrentKey = first;
-      Nan::Utf8String subkeyArg(Nan::To<v8::String>(info[1]).ToLocalChecked());
-      auto subkey = utf8ToWideChar(std::string(*subkeyArg));
-      if (subkey == nullptr)
-      {
-        Nan::ThrowTypeError("A string was expected for the second argument, but could not be parsed.");
-        return;
-      }
-
-      Nan::Utf8String nameArg(Nan::To<v8::String>(info[2]).ToLocalChecked());
-      auto valueName = utf8ToWideChar(std::string(*nameArg));
-      if (valueName == nullptr)
-      {
-        Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
-        return;
-      }
-
-      Nan::Utf8String typeArg(Nan::To<v8::String>(info[3]).ToLocalChecked());
-      auto valueType = utf8ToWideChar(std::string(*typeArg));
-      if (valueType == nullptr)
-      {
-        Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
-        return;
-      }
-
-      HKEY hOpenKey;
-      LONG openKey = RegOpenKeyEx(
-          first,
-          subkey,
-          0,
-          KEY_WRITE | KEY_WOW64_64KEY,
-          &hOpenKey);
-
-      if (openKey == ERROR_FILE_NOT_FOUND)
-      {
-        Nan::ThrowTypeError("RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND");
-        return;
-      }
-      else if (openKey == ERROR_SUCCESS)
-      {
-        long setValue = ERROR_INVALID_HANDLE;
-
-        if (wcscmp(valueType, L"REG_SZ") == 0)
-        {
-          Nan::Utf8String typeArg(Nan::To<v8::String>(info[4]).ToLocalChecked());
-          auto valueData = utf8ToWideChar(std::string(*typeArg));
-          if (valueData == nullptr)
-          {
-            Nan::ThrowTypeError("A string was expected for the fifth argument, but could not be parsed.");
-            return;
-          }
-          int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
-          setValue = RegSetValueEx(
-              hOpenKey,
-              valueName,
-              0,
-              REG_SZ,
-              (const BYTE *)valueData,
-              datalength);
-        }
-        else if (wcscmp(valueType, L"REG_DWORD") == 0)
-        {
-          int dwordData = Nan::To<int>(info[4]).FromJust();
-          DWORD valueData = static_cast<DWORD>(dwordData);
-
-          setValue = RegSetValueEx(
-              hOpenKey,
-              valueName,
-              0,
-              REG_DWORD,
-              (const BYTE *)&valueData,
-              sizeof(valueData));
-        }
-        else
-        {
-          char errorMessage[255];
-          sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
-          Nan::ThrowTypeError(errorMessage);
-          return;
-        }
-
-        if (setValue != ERROR_SUCCESS)
-        {
-          // FIXME: the key does not exist, just return an empty array for now
-          info.GetReturnValue().Set(New<v8::Boolean>(false));
-          return;
-        }
-        info.GetReturnValue().Set(New<v8::Boolean>(true));
-        RegCloseKey(hOpenKey);
-      }
-      else
-      {
-        char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
-        sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
-        Nan::ThrowTypeError(errorMessage);
-        return;
-      }
+      char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
+      sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+      Nan::ThrowTypeError(errorMessage);
+      return;
     }
   }
+}
 
-  NAN_MODULE_INIT(Init)
-  {
-    Nan::SetMethod(target, "readValues", ReadValues);
-    Nan::SetMethod(target, "enumKeys", EnumKeys);
-    Nan::SetMethod(target, "createKey", CreateKey);
-    Nan::SetMethod(target, "setValue", SetValue);
-  }
+NAN_MODULE_INIT(Init)
+{
+  Nan::SetMethod(target, "readValues", ReadValues);
+  Nan::SetMethod(target, "enumKeys", EnumKeys);
+  Nan::SetMethod(target, "createKey", CreateKey);
+  Nan::SetMethod(target, "setValue", SetValue);
+}
 }
 
 #if NODE_MAJOR_VERSION >= 10
