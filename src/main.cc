@@ -360,21 +360,27 @@ NAN_METHOD(SetValue)
       return;
     }
 
-    if (!info[1]->IsString() || info[1]->IsNullOrUndefined())
+    if (!info[1]->IsString())
     {
       Nan::ThrowTypeError("A string was expected for the second argument, but wasn't received.");
       return;
     }
 
-    if (!info[2]->IsString() || info[2]->IsNullOrUndefined())
+    if (!info[2]->IsString())
     {
-      Nan::ThrowTypeError("A number was expected for the third argument, but wasn't received.");
+      Nan::ThrowTypeError("A string was expected for the third argument, but wasn't received.");
       return;
     }
 
-    if (!info[3]->IsString() || info[3]->IsNullOrUndefined())
+    if (!info[3]->IsString())
     {
-      Nan::ThrowTypeError("A number was expected for the fourth argument, but wasn't received.");
+      Nan::ThrowTypeError("A string was expected for the fourth argument, but wasn't received.");
+      return;
+    }
+
+    if (!info[4]->IsString())
+    {
+      Nan::ThrowTypeError("A string was expected for the fourth argument, but wasn't received.");
       return;
     }
 

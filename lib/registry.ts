@@ -139,7 +139,7 @@ export function enumerateKeysSafe(
   }
 }
 
-export function createKey(key: HKEY, subkey?: string | null): boolean {
+export function createKey(key: HKEY, subkey: string): boolean {
   if (!nativeModule) {
     // this code is a no-op when the module is missing
     return false
@@ -151,7 +151,7 @@ export function createKey(key: HKEY, subkey?: string | null): boolean {
   return result
 }
 
-export function createKeySafe(key: HKEY, subkey?: string | null): boolean {
+export function createKeySafe(key: HKEY, subkey: string): boolean {
   try {
     return createKey(key, subkey)
   } catch {
@@ -164,7 +164,7 @@ export function setValue(
   subkey: string,
   valueName: string,
   valueType: RegistryValueType,
-  valueData?: any
+  valueData: string
 ): boolean {
   if (!nativeModule) {
     // this code is a no-op when the module is missing
@@ -196,7 +196,7 @@ export function setValueSafe(
   subkey: string,
   valueName: string,
   valueType: RegistryValueType,
-  valueData?: any
+  valueData: string
 ): boolean {
   try {
     return setValue(key, subkey, valueName, valueType, valueData)

@@ -88,7 +88,7 @@ if (process.platform === 'win32') {
           'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
           'ValueTestDword',
           RegistryValueType.REG_DWORD,
-          1
+          '1'
         )
       } catch (e) {
         console.log(e)
