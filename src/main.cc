@@ -407,7 +407,7 @@ NAN_METHOD(SetValue)
     auto valueType = utf8ToWideChar(std::string(*typeArg));
     if (valueType == nullptr)
     {
-      Nan::ThrowTypeError("A string was expected for the third argument, but could not be parsed.");
+      Nan::ThrowTypeError("A string was expected for the fourth argument, but could not be parsed.");
       return;
     }
 
