@@ -1,4 +1,11 @@
-import { enumerateValues, enumerateKeys, HKEY } from '../lib/index'
+import {
+  enumerateValues,
+  enumerateKeys,
+  setValue,
+  createKey,
+  HKEY,
+  RegistryValueType,
+} from '../lib/index'
 
 if (process.platform === 'win32') {
   describe('enumerateValue', () => {
@@ -58,6 +65,69 @@ if (process.platform === 'win32') {
 
       expect(values.indexOf('Classes')).toBeGreaterThanOrEqual(0)
       expect(values.indexOf('Microsoft')).toBeGreaterThanOrEqual(0)
+    })
+  })
+
+  describe('setValue', () => {
+    it("can't set not implemented value for a registry key", () => {
+      const result = setValue(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
+        'ValueTest',
+        RegistryValueType.REG_EXPAND_SZ,
+        'Value'
+      )
+      expect(result).toBeFalsy()
+    })
+
+    it('can set DWORD value for a registry key', () => {
+      let result = false
+      try {
+        result = setValue(
+          HKEY.HKEY_CURRENT_USER,
+          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
+          'ValueTestDword',
+          RegistryValueType.REG_DWORD,
+          '1'
+        )
+      } catch (e) {
+        console.log(e)
+      }
+      expect(result).toBeTruthy()
+    })
+
+    it('can set REG_SZ value for a registry key', () => {
+      let result = false
+      try {
+        result = setValue(
+          HKEY.HKEY_CURRENT_USER,
+          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
+          'ValueTestSz',
+          RegistryValueType.REG_SZ,
+          'Value 123 ! test@test.com (456)'
+        )
+      } catch (e) {
+        console.log(e)
+      }
+      expect(result).toBeTruthy()
+    })
+  })
+
+  describe('createKey', () => {
+    it('can create a registry key', () => {
+      const result = createKey(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\UnitTests'
+      )
+      expect(result).toBeTruthy()
+    })
+
+    it('can create a registry key in WOW6432Node', () => {
+      const result = createKey(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\WOW6432Node\\UnitTests'
+      )
+      expect(result).toBeTruthy()
     })
   })
 }

@@ -138,3 +138,69 @@ export function enumerateKeysSafe(
     return []
   }
 }
+
+export function createKey(key: HKEY, subkey: string): boolean {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return false
+  }
+  const hkey = mapToLong(key)
+
+  const result: boolean = nativeModule.createKey(hkey, subkey)
+
+  return result
+}
+
+export function createKeySafe(key: HKEY, subkey: string): boolean {
+  try {
+    return createKey(key, subkey)
+  } catch {
+    return false
+  }
+}
+
+export function setValue(
+  key: HKEY,
+  subkey: string,
+  valueName: string,
+  valueType: RegistryValueType,
+  valueData: string
+): boolean {
+  if (!nativeModule) {
+    // this code is a no-op when the module is missing
+    return false
+  }
+
+  if (
+    valueType != RegistryValueType.REG_SZ &&
+    valueType != RegistryValueType.REG_DWORD
+  ) {
+    // not implemented yet
+    return false
+  }
+  const hkey = mapToLong(key)
+
+  const result: boolean = nativeModule.setValue(
+    hkey,
+    subkey,
+    valueName,
+    valueType,
+    valueData
+  )
+
+  return result
+}
+
+export function setValueSafe(
+  key: HKEY,
+  subkey: string,
+  valueName: string,
+  valueType: RegistryValueType,
+  valueData: string
+): boolean {
+  try {
+    return setValue(key, subkey, valueName, valueType, valueData)
+  } catch {
+    return false
+  }
+}
