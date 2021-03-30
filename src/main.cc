@@ -380,7 +380,7 @@ NAN_METHOD(SetValue)
 
     if (!info[4]->IsString())
     {
-      Nan::ThrowTypeError("A string was expected for the fourth argument, but wasn't received.");
+      Nan::ThrowTypeError("A string was expected for the fifth argument, but wasn't received.");
       return;
     }
 
