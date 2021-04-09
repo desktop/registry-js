@@ -16,5 +16,4 @@ build
 jest.json
 .node-version
 .github
-src
 dist/test
