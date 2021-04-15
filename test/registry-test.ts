@@ -52,6 +52,7 @@ if (process.platform === 'win32') {
       expect(values).toEqual([])
     })
   })
+
   describe('enumerateKeys', () => {
     it('can enumerate key names from the registry (No subkey)', () => {
       const values = enumerateKeys(HKEY.HKEY_LOCAL_MACHINE, null)
@@ -94,6 +95,15 @@ if (process.platform === 'win32') {
         console.log(e)
       }
       expect(result).toBeTruthy()
+
+      const values = enumerateValues(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
+      )
+
+      const programFilesDir = values.find(v => v.name == 'ValueTestDword')
+      expect(programFilesDir!.type).toBe('REG_DWORD')
+      expect(programFilesDir!.data).toBe(1)
     })
 
     it('can set REG_SZ value for a registry key', () => {
@@ -110,6 +120,15 @@ if (process.platform === 'win32') {
         console.log(e)
       }
       expect(result).toBeTruthy()
+
+      const values = enumerateValues(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
+      )
+
+      const programFilesDir = values.find(v => v.name == 'ValueTestSz')
+      expect(programFilesDir!.type).toBe('REG_SZ')
+      expect(programFilesDir!.data).toBe('Value 123 ! test@test.com (456)')
     })
   })
 
