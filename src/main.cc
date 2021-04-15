@@ -12,7 +12,6 @@
 #include <memory>
 
 using namespace Napi;
-using namespace Napi;
 
 namespace {
 
@@ -96,7 +95,6 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
     char errorMessage[49]; // 38 for message + 10 for int + 1 for nul
     sprintf_s(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
     Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
-
     return Napi::Array::New(env, 0);
   }
 
@@ -128,18 +126,18 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(env, achValue, L"REG_SZ", text, cbData);
-        (results).Set(i, obj);
+        results[i] = obj;
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(env, achValue, L"REG_EXPAND_SZ", text, cbData);
-        (results).Set(i, obj);
+        results[i] = obj;
       }
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        (results).Set(i, CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
+        results[i] = CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get()));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -152,7 +150,6 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
       char errorMessage[50]; // 39 for message + 10 for int  + 1 for nul
       sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
-
       return Napi::Array::New(env, 0);
     }
   }
@@ -167,19 +164,19 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
   if (info.Length() < 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[0].IsNumber())
   {
     Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[1].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
@@ -190,7 +187,7 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
   if (subkey == nullptr)
   {
     Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   HKEY hCurrentKey;
@@ -217,7 +214,7 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
     char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
     sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 }
 
@@ -228,13 +225,13 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
   if (argCount != 1 && argCount != 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[0].IsNumber())
   {
     Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
@@ -245,14 +242,14 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
     if (!info[1].IsString())
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
+      return env.Undefined();
     }
     std::string subkeyArg = info[1].As<Napi::String>();
     auto subkey = utf8ToWideChar(subkeyArg);
     if (subkey == nullptr)
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
-      return env.Null();
+      return env.Undefined();
     }
 
     auto openKey = RegOpenKeyEx(
@@ -276,7 +273,7 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
     auto ret = RegEnumKeyEx(hCurrentKey, i, name, &nameLen, nullptr, nullptr, nullptr, nullptr);
     if (ret == ERROR_SUCCESS)
     {
-      (results).Set(i, Napi::String::New(env, (char16_t*)name));
+      results[i] = Napi::String::New(env, (char16_t*)name);
       continue;
     }
     break; // FIXME: We should do better error handling here
@@ -294,19 +291,19 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
   if (argCount != 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[0].IsNumber())
   {
     Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[1].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
@@ -319,7 +316,7 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
     if (subKey == nullptr)
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
-      return env.Null();
+      return env.Undefined();
     }
     auto newKey = RegCreateKeyEx(
         first,
@@ -352,37 +349,37 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   if (argCount != 5)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[0].IsNumber())
   {
     Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[1].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[2].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the third argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[3].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the fourth argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   if (!info[4].IsString())
   {
     Napi::TypeError::New(env, "A string was expected for the fifth argument, but wasn't received.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
@@ -393,7 +390,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   if (subkey == nullptr)
   {
     Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   std::string nameArg = info[2].As<Napi::String>();
@@ -401,7 +398,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   if (valueName == nullptr)
   {
     Napi::TypeError::New(env, "A string was expected for the third argument, but could not be parsed.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   std::string typeArg = info[3].As<Napi::String>();
@@ -409,7 +406,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   if (valueType == nullptr)
   {
     Napi::TypeError::New(env, "A string was expected for the fourth argument, but could not be parsed.").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   HKEY hOpenKey;
@@ -423,7 +420,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   if (openKey == ERROR_FILE_NOT_FOUND)
   {
     Napi::TypeError::New(env, "RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
   else if (openKey == ERROR_SUCCESS)
   {
@@ -436,7 +433,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
       if (valueData == nullptr)
       {
         Napi::TypeError::New(env, "A string was expected for the fifth argument, but could not be parsed.").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
       }
       int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
       setValue = RegSetValueEx(
@@ -465,7 +462,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
       char errorMessage[255];
       sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
       Napi::TypeError::New(env, errorMessage).ThrowAsJavaScriptException();
-      return env.Null();
+      return env.Undefined();
     }
 
     if (setValue != ERROR_SUCCESS)
@@ -481,7 +478,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
     char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
     sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Napi::TypeError::New(env, errorMessage).ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 }
 
