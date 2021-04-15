@@ -5,6 +5,7 @@
 #include "napi.h"
 #include "uv.h"
 
+#include <assert.h>
 #include <windows.h>
 
 #include <cstdio>
@@ -42,7 +43,7 @@ LPWSTR utf8ToWideChar(std::string utf8) {
   return result;
 }
 
-Napi::Object CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
+Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
 
@@ -57,32 +58,23 @@ Napi::Object CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, LPWSTR data
   // ... otherwise, it's not null-terminated, but we're passing the explicit length
   // to NewFromTwoByte anyway so we'll be fine (we won't over-read).
 
-  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
-  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
-  auto v8DataString = v8::String::NewFromTwoByte(isolate, (uint16_t*)data, NewStringType::kNormal, dataLengthBytes/sizeof(wchar_t));
-
   auto obj = Napi::Object::New(env);
-  v8::Local<v8::Context> context = Napi::GetCurrentContext();
-  obj.Set(context, Napi::String::New(env, "name"), v8NameString);
-  obj.Set(context, Napi::String::New(env, "type"), v8TypeString);
-  obj.Set(context, Napi::String::New(env, "data"), v8DataString);
+  obj.Set(Napi::String::New(env, "name"), Napi::String::New(env, (char16_t*)name));
+  obj.Set(Napi::String::New(env, "type"), Napi::String::New(env, (char16_t*)type));
+  obj.Set(Napi::String::New(env, "data"), Napi::String::New(env, (char16_t*)data, dataLengthBytes/sizeof(wchar_t)));
   return obj;
 }
 
-Napi::Object CreateEntry(Isolate *isolate, LPWSTR name, LPWSTR type, DWORD data)
+Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, DWORD data)
 {
-  auto v8NameString = v8::String::NewFromTwoByte(isolate, (uint16_t*)name, NewStringType::kNormal);
-  auto v8TypeString = v8::String::NewFromTwoByte(isolate, (uint16_t*)type, NewStringType::kNormal);
-
   auto obj = Napi::Object::New(env);
-  v8::Local<v8::Context> context = Napi::GetCurrentContext();
-  obj.Set(context, Napi::String::New(env, "name"), v8NameString);
-  obj.Set(context, Napi::String::New(env, "type"), v8TypeString);
-  obj.Set(context, Napi::String::New(env, "data"), Napi::New(env, static_cast<uint32_t>(data)));
+  obj.Set(Napi::String::New(env, "name"), Napi::String::New(env, (char16_t*)name));
+  obj.Set(Napi::String::New(env, "type"), Napi::String::New(env, (char16_t*)type));
+  obj.Set(Napi::String::New(env, "data"), Napi::Number::New(env, static_cast<uint32_t>(data)));
   return obj;
 }
 
-Napi::Array EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
+Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
   auto retCode = RegQueryInfoKey(
@@ -105,10 +97,10 @@ Napi::Array EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
     sprintf_s(errorMessage, "RegQueryInfoKey failed - exit code: '%d'", retCode);
     Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
 
-    return New<v8::Array>(0);
+    return Napi::Array::New(env, 0);
   }
 
-  auto results = New<v8::Array>(cValues);
+  auto results = Napi::Array::New(env,  cValues);
 
   auto buffer = std::make_unique<BYTE[]>(cbMaxValueData);
   for (DWORD i = 0; i < cValues; i++)
@@ -135,19 +127,19 @@ Napi::Array EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, L"REG_SZ", text, cbData);
+        auto obj = CreateEntry(env, achValue, L"REG_SZ", text, cbData);
         (results).Set(i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(isolate, achValue, L"REG_EXPAND_SZ", text, cbData);
+        auto obj = CreateEntry(env, achValue, L"REG_EXPAND_SZ", text, cbData);
         (results).Set(i, obj);
       }
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        (results).Set(i, CreateEntry(isolate, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
+        (results).Set(i, CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -161,7 +153,7 @@ Napi::Array EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
       sprintf_s(errorMessage, "RegEnumValue returned an error code: '%d'", retCode);
       Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
 
-      return New<v8::Array>(0);
+      return Napi::Array::New(env, 0);
     }
   }
 
@@ -170,6 +162,8 @@ Napi::Array EnumerateValues(HKEY hCurrentKey, Isolate *isolate) {
 
 Napi::Value ReadValues(const Napi::CallbackInfo& info)
 {
+  Napi::Env& env = info.Env();
+
   if (info.Length() < 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
@@ -190,8 +184,8 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
 
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
 
-  std::string subkeyArg = info[1].As<Napi::String>(.To<Napi::String>());
-  auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+  std::string subkeyArg = info[1].As<Napi::String>();
+  auto subkey = utf8ToWideChar(subkeyArg);
 
   if (subkey == nullptr)
   {
@@ -210,24 +204,26 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
   if (openKey == ERROR_FILE_NOT_FOUND)
   {
     // the key does not exist, just return an empty array for now
-    return New<v8::Array>(0);
+    return Napi::Array::New(env, 0);
   }
   else if (openKey == ERROR_SUCCESS)
   {
-    Napi::Array results = EnumerateValues(hCurrentKey, info.GetIsolate());
-    return results;
+    Napi::Array results = EnumerateValues(env, hCurrentKey);
     RegCloseKey(hCurrentKey);
+    return results;
   }
   else
   {
     char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
     sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
     Napi::Error::New(env, errorMessage).ThrowAsJavaScriptException();
-
+    return env.Null();
   }
 }
 
 Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
+  Napi::Env& env = info.Env();
+  
   auto argCount = info.Length();
   if (argCount != 1 && argCount != 2)
   {
@@ -244,15 +240,15 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
 
   HKEY hCurrentKey = first;
-  if (argCount == 2 && !info[1].IsNullOrUndefined())
+  if (argCount == 2 && !info[1].IsNull() && !info[1].IsUndefined())
   {
     if (!info[1].IsString())
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
       return env.Null();
     }
-    std::string subkeyArg = info[1].As<Napi::String>(.To<Napi::String>());
-    auto subkey = utf8ToWideChar(std::string(*subkeyArg));
+    std::string subkeyArg = info[1].As<Napi::String>();
+    auto subkey = utf8ToWideChar(subkeyArg);
     if (subkey == nullptr)
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
@@ -268,12 +264,11 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
     if (openKey != ERROR_SUCCESS)
     {
       // FIXME: the key does not exist, just return an empty array for now
-      return New<v8::Array>(0);
-      return;
+      return Napi::Array::New(env, 0);
     }
   }
 
-  auto results = New<v8::Array>(0);
+  auto results = Napi::Array::New(env, 0);
   WCHAR name[MAX_VALUE_NAME];
   for (int i = 0;; i++)
   {
@@ -281,19 +276,20 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
     auto ret = RegEnumKeyEx(hCurrentKey, i, name, &nameLen, nullptr, nullptr, nullptr, nullptr);
     if (ret == ERROR_SUCCESS)
     {
-      auto v8NameString = v8::String::NewFromTwoByte(info.GetIsolate(), reinterpret_cast<uint16_t *>(name), NewStringType::kNormal);
-      (results).Set(i, v8NameString);
+      (results).Set(i, Napi::String::New(env, (char16_t*)name));
       continue;
     }
     break; // FIXME: We should do better error handling here
   }
-  return results;
   if (hCurrentKey != first)
     RegCloseKey(hCurrentKey);
+  return results;
 }
 
 Napi::Value CreateKey(const Napi::CallbackInfo& info)
 {
+  Napi::Env& env = info.Env();
+  
   auto argCount = info.Length();
   if (argCount != 2)
   {
@@ -316,10 +312,10 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
   auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
 
   HKEY hCurrentKey = first;
-  if (!info[1].IsNullOrUndefined())
+  if (!info[1].IsNull() && !info[1].IsUndefined())
   {
-    std::string subkeyArg = info[1].As<Napi::String>(.To<Napi::String>());
-    auto subKey = utf8ToWideChar(std::string(*subkeyArg));
+    std::string subkeyArg = info[1].As<Napi::String>();
+    auto subKey = utf8ToWideChar(subkeyArg);
     if (subKey == nullptr)
     {
       Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
@@ -337,156 +333,155 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
         nullptr);
     if (newKey != ERROR_SUCCESS)
     {
-      // FIXME: the key does not exist, just return an empty array for now
-      return New<v8::Boolean>(false);
-      return;
+      // FIXME: the key does not exist, just return false for now
+      return Napi::Number::New(env, false);
     }
   }
 
-  return New<v8::Boolean>(true);
   if (hCurrentKey != first)
     RegCloseKey(hCurrentKey);
+
+  return Napi::Number::New(env, true);
 }
 
 Napi::Value SetValue(const Napi::CallbackInfo& info)
 {
+  Napi::Env& env = info.Env();
+
+  auto argCount = info.Length();
+  if (argCount != 5)
   {
-    auto argCount = info.Length();
-    if (argCount != 5)
+    Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  if (!info[0].IsNumber())
+  {
+    Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  if (!info[1].IsString())
+  {
+    Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  if (!info[2].IsString())
+  {
+    Napi::TypeError::New(env, "A string was expected for the third argument, but wasn't received.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  if (!info[3].IsString())
+  {
+    Napi::TypeError::New(env, "A string was expected for the fourth argument, but wasn't received.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  if (!info[4].IsString())
+  {
+    Napi::TypeError::New(env, "A string was expected for the fifth argument, but wasn't received.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
+
+  HKEY hCurrentKey = first;
+  std::string subkeyArg = info[1].As<Napi::String>();
+  auto subkey = utf8ToWideChar(subkeyArg);
+  if (subkey == nullptr)
+  {
+    Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  std::string nameArg = info[2].As<Napi::String>();
+  auto valueName = utf8ToWideChar(nameArg);
+  if (valueName == nullptr)
+  {
+    Napi::TypeError::New(env, "A string was expected for the third argument, but could not be parsed.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  std::string typeArg = info[3].As<Napi::String>();
+  auto valueType = utf8ToWideChar(typeArg);
+  if (valueType == nullptr)
+  {
+    Napi::TypeError::New(env, "A string was expected for the fourth argument, but could not be parsed.").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  HKEY hOpenKey;
+  LONG openKey = RegOpenKeyEx(
+      first,
+      subkey,
+      0,
+      KEY_WRITE | KEY_WOW64_64KEY,
+      &hOpenKey);
+
+  if (openKey == ERROR_FILE_NOT_FOUND)
+  {
+    Napi::TypeError::New(env, "RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+  else if (openKey == ERROR_SUCCESS)
+  {
+    long setValue = ERROR_INVALID_HANDLE;
+
+    if (wcscmp(valueType, L"REG_SZ") == 0)
     {
-      Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    if (!info[0].IsNumber())
-    {
-      Napi::TypeError::New(env, "A number was expected for the first argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    if (!info[1].IsString())
-    {
-      Napi::TypeError::New(env, "A string was expected for the second argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    if (!info[2].IsString())
-    {
-      Napi::TypeError::New(env, "A string was expected for the third argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    if (!info[3].IsString())
-    {
-      Napi::TypeError::New(env, "A string was expected for the fourth argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    if (!info[4].IsString())
-    {
-      Napi::TypeError::New(env, "A string was expected for the fifth argument, but wasn't received.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    auto first = reinterpret_cast<HKEY>(info[0].As<Napi::Number>().Int64Value());
-
-    HKEY hCurrentKey = first;
-    std::string subkeyArg = info[1].As<Napi::String>(.To<Napi::String>());
-    auto subkey = utf8ToWideChar(std::string(*subkeyArg));
-    if (subkey == nullptr)
-    {
-      Napi::TypeError::New(env, "A string was expected for the second argument, but could not be parsed.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    std::string nameArg = info[2].As<Napi::String>(.To<Napi::String>());
-    auto valueName = utf8ToWideChar(std::string(*nameArg));
-    if (valueName == nullptr)
-    {
-      Napi::TypeError::New(env, "A string was expected for the third argument, but could not be parsed.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    std::string typeArg = info[3].As<Napi::String>(.To<Napi::String>());
-    auto valueType = utf8ToWideChar(std::string(*typeArg));
-    if (valueType == nullptr)
-    {
-      Napi::TypeError::New(env, "A string was expected for the fourth argument, but could not be parsed.").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-
-    HKEY hOpenKey;
-    LONG openKey = RegOpenKeyEx(
-        first,
-        subkey,
-        0,
-        KEY_WRITE | KEY_WOW64_64KEY,
-        &hOpenKey);
-
-    if (openKey == ERROR_FILE_NOT_FOUND)
-    {
-      Napi::TypeError::New(env, "RegOpenKeyEx : cannot find the registrykey, error_code : ERROR_FILE_NOT_FOUND").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-    else if (openKey == ERROR_SUCCESS)
-    {
-      long setValue = ERROR_INVALID_HANDLE;
-
-      if (wcscmp(valueType, L"REG_SZ") == 0)
+      std::string typeArg = info[4].As<Napi::String>();
+      auto valueData = utf8ToWideChar(typeArg);
+      if (valueData == nullptr)
       {
-        std::string typeArg = info[4].As<Napi::String>(.To<Napi::String>());
-        auto valueData = utf8ToWideChar(std::string(*typeArg));
-        if (valueData == nullptr)
-        {
-          Napi::TypeError::New(env, "A string was expected for the fifth argument, but could not be parsed.").ThrowAsJavaScriptException();
-          return env.Null();
-        }
-        int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
-        setValue = RegSetValueEx(
-            hOpenKey,
-            valueName,
-            0,
-            REG_SZ,
-            (const BYTE *)valueData,
-            datalength);
-      }
-      else if (wcscmp(valueType, L"REG_DWORD") == 0)
-      {
-        int dwordData = info[4].As<Napi::Number>().Int32Value();
-        DWORD valueData = static_cast<DWORD>(dwordData);
-
-        setValue = RegSetValueEx(
-            hOpenKey,
-            valueName,
-            0,
-            REG_DWORD,
-            (const BYTE *)&valueData,
-            sizeof(valueData));
-      }
-      else
-      {
-        char errorMessage[255];
-        sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
-        Napi::TypeError::New(env, errorMessage).ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "A string was expected for the fifth argument, but could not be parsed.").ThrowAsJavaScriptException();
         return env.Null();
       }
+      int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
+      setValue = RegSetValueEx(
+          hOpenKey,
+          valueName,
+          0,
+          REG_SZ,
+          (const BYTE *)valueData,
+          datalength);
+    }
+    else if (wcscmp(valueType, L"REG_DWORD") == 0)
+    {     
+      int dwordData = info[4].ToNumber().Int32Value();
+      DWORD valueData = static_cast<DWORD>(dwordData);
 
-      if (setValue != ERROR_SUCCESS)
-      {
-        // FIXME: the key does not exist, just return an empty array for now
-        return New<v8::Boolean>(false);
-        return;
-      }
-      return New<v8::Boolean>(true);
-      RegCloseKey(hOpenKey);
+      setValue = RegSetValueEx(
+          hOpenKey,
+          valueName,
+          0,
+          REG_DWORD,
+          (const BYTE *)&valueData,
+          sizeof(valueData));
     }
     else
     {
-      char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
-      sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+      char errorMessage[255];
+      sprintf_s(errorMessage, "RegSetValueEx Unmanaged type : '%ls'", valueType);
       Napi::TypeError::New(env, errorMessage).ThrowAsJavaScriptException();
       return env.Null();
     }
+
+    if (setValue != ERROR_SUCCESS)
+    {
+      // FIXME: the key does not exist, just return false for now
+      return Napi::Number::New(env, false);
+    }
+    RegCloseKey(hOpenKey);
+    return Napi::Number::New(env, true);
+  }
+  else
+  {
+    char errorMessage[46]; // 35 for message + 10 for int + 1 for nul
+    sprintf_s(errorMessage, "RegOpenKeyEx failed - exit code: '%d'", openKey);
+    Napi::TypeError::New(env, errorMessage).ThrowAsJavaScriptException();
+    return env.Null();
   }
 }
 
@@ -496,6 +491,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
   exports.Set(Napi::String::New(env, "enumKeys"), Napi::Function::New(env, EnumKeys));
   exports.Set(Napi::String::New(env, "createKey"), Napi::Function::New(env, CreateKey));
   exports.Set(Napi::String::New(env, "setValue"), Napi::Function::New(env, SetValue));
+
+  return exports;
 }
 }
 
