@@ -446,7 +446,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
     }
     else if (wcscmp(valueType, L"REG_DWORD") == 0)
     {     
-      int dwordData = info[4].ToNumber().Int32Value();
+      uint32_t dwordData = info[4].ToNumber().Uint32Value();
       DWORD valueData = static_cast<DWORD>(dwordData);
 
       setValue = RegSetValueEx(
