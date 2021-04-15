@@ -126,18 +126,18 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(env, achValue, L"REG_SZ", text, cbData);
-        results[i] = obj;
+        results.Set(i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
         auto obj = CreateEntry(env, achValue, L"REG_EXPAND_SZ", text, cbData);
-        results[i] = obj;
+        results.Set(i, obj);
       }
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        results[i] = CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get()));
+        results.Set(i, CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -273,7 +273,7 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
     auto ret = RegEnumKeyEx(hCurrentKey, i, name, &nameLen, nullptr, nullptr, nullptr, nullptr);
     if (ret == ERROR_SUCCESS)
     {
-      results[i] = Napi::String::New(env, (char16_t*)name);
+      results.Set(i, Napi::String::New(env, (char16_t*)name));
       continue;
     }
     break; // FIXME: We should do better error handling here
