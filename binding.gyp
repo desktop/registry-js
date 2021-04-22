@@ -13,6 +13,9 @@
       },
       'include_dirs': [
         '<!(node -p "require(\'node-addon-api\').include_dir")' ],
+      'defines': [
+        "NAPI_VERSION=<(napi_build_version)",
+      ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
