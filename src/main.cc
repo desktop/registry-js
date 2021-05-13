@@ -331,14 +331,14 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
     if (newKey != ERROR_SUCCESS)
     {
       // FIXME: the key does not exist, just return false for now
-      return Napi::Number::New(env, false);
+      return Napi::Boolean::New(env, false);
     }
   }
 
   if (hCurrentKey != first)
     RegCloseKey(hCurrentKey);
 
-  return Napi::Number::New(env, true);
+  return Napi::Boolean::New(env, true);
 }
 
 Napi::Value SetValue(const Napi::CallbackInfo& info)
@@ -468,10 +468,10 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
     if (setValue != ERROR_SUCCESS)
     {
       // FIXME: the key does not exist, just return false for now
-      return Napi::Number::New(env, false);
+      return Napi::Boolean::New(env, false);
     }
     RegCloseKey(hOpenKey);
-    return Napi::Number::New(env, true);
+    return Napi::Boolean::New(env, true);
   }
   else
   {
