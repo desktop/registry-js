@@ -28,7 +28,7 @@ limitations that meant we couldn't use it in GitHub Desktop:
 * [`windows-registry`](https://www.npmjs.com/package/windows-registry) depends
   on `ffi` at runtime, which caused issues with webpack-ing, and was missing
   APIs we needed.
-* [`node-winreg`](https://www.npmjs.com/package/node-winreg) depends on
+* [`winreg`](https://www.npmjs.com/package/winreg) depends on
   `reg.exe` which breaks as soon as you enable "Prevent access to registry
   editing tools" Group Policy rules (yes, even `QUERY` operations are caught by
   this). More details about this can be found in
