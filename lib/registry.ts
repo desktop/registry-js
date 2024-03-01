@@ -173,6 +173,7 @@ export function setValue(
 
   if (
     valueType != RegistryValueType.REG_SZ &&
+    valueType != RegistryValueType.REG_EXPAND_SZ &&
     valueType != RegistryValueType.REG_DWORD
   ) {
     // not implemented yet
