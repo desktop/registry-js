@@ -426,7 +426,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
   {
     long setValue = ERROR_INVALID_HANDLE;
 
-    if (wcscmp(valueType, L"REG_SZ") == 0)
+    if (wcscmp(valueType, L"REG_SZ") == 0 || wcscmp(valueType, L"REG_EXPAND_SZ") == 0)
     {
       std::string typeArg = info[4].As<Napi::String>();
       auto valueData = utf8ToWideChar(typeArg);
@@ -436,11 +436,12 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
         return env.Undefined();
       }
       int datalength = static_cast<int>(wcslen(valueData) * sizeof(valueData[0]));
+      DWORD regType = wcscmp(valueType, L"REG_SZ") == 0 ? REG_SZ : REG_EXPAND_SZ;
       setValue = RegSetValueEx(
           hOpenKey,
           valueName,
           0,
-          REG_SZ,
+          regType,
           (const BYTE *)valueData,
           datalength);
     }

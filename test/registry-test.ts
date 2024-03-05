@@ -75,7 +75,7 @@ if (process.platform === 'win32') {
         HKEY.HKEY_CURRENT_USER,
         'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
         'ValueTest',
-        RegistryValueType.REG_EXPAND_SZ,
+        RegistryValueType.REG_MULTI_SZ,
         'Value'
       )
       expect(result).toBeFalsy()
@@ -129,6 +129,33 @@ if (process.platform === 'win32') {
       const programFilesDir = values.find(v => v.name == 'ValueTestSz')
       expect(programFilesDir!.type).toBe('REG_SZ')
       expect(programFilesDir!.data).toBe('Value 123 ! test@test.com (456)')
+    })
+
+    it('can set REG_EXPAND_SZ value for a registry key', () => {
+      let result = false
+      try {
+        result = setValue(
+          HKEY.HKEY_CURRENT_USER,
+          'SOFTWARE\\Microsoft\\Windows\\CurrentVersion',
+          'ValueTestExpandSz',
+          RegistryValueType.REG_EXPAND_SZ,
+          'Value 123 ! test@test.com (456);%NVM_HOME%;%NVM_SYMLINK%'
+        )
+      } catch (e) {
+        console.log(e)
+      }
+      expect(result).toBeTruthy()
+
+      const values = enumerateValues(
+        HKEY.HKEY_CURRENT_USER,
+        'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
+      )
+
+      const value = values.find(v => v.name == 'ValueTestExpandSz')
+      expect(value!.type).toBe('REG_EXPAND_SZ')
+      expect(value!.data).toBe(
+        'Value 123 ! test@test.com (456);%NVM_HOME%;%NVM_SYMLINK%'
+      )
     })
   })
 
