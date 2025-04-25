@@ -42,7 +42,7 @@ LPWSTR utf8ToWideChar(std::string utf8) {
   return result;
 }
 
-Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
+Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, const LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
 
@@ -64,7 +64,7 @@ Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, LPWSTR type, LPWSTR 
   return obj;
 }
 
-Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, LPWSTR type, DWORD data)
+Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, const LPWSTR type, DWORD data)
 {
   auto obj = Napi::Object::New(env);
   obj.Set(Napi::String::New(env, "name"), Napi::String::New(env, (char16_t*)name));
@@ -125,19 +125,19 @@ Napi::Array EnumerateValues(const Napi::Env& env, HKEY hCurrentKey) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(env, achValue, const_cast<LPWSTR>(L"REG_SZ"), text, cbData);
+        auto obj = CreateEntry(env, achValue, (LPWSTR)L"REG_SZ", text, cbData);
         results.Set(i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(env, achValue, const_cast<LPWSTR>(L"REG_EXPAND_SZ"), text, cbData);
+        auto obj = CreateEntry(env, achValue, (LPWSTR)L"REG_EXPAND_SZ", text, cbData);
         results.Set(i, obj);
       }
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        results.Set(i, CreateEntry(env, achValue, const_cast<LPWSTR>(L"REG_DWORD"), *reinterpret_cast<DWORD*>(buffer.get())));
+        results.Set(i, CreateEntry(env, achValue, (LPWSTR)L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)

@@ -38,13 +38,14 @@
     "benchmark": "^2.1.4",
     "jest": "^26.4.2",
     "node-abi": "^2.21.0",
+    "node-gyp": "^11.2.0",
     "prebuild": "^10.0.1",
     "prettier": "^2.0.5",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.0"
   },
   "dependencies": {
-    "node-addon-api": "^3.1.0",
+    "node-addon-api": "^3.2.1",
     "prebuild-install": "^5.3.5"
   },
   "binary": {
