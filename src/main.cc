@@ -42,7 +42,7 @@ LPWSTR utf8ToWideChar(std::string utf8) {
   return result;
 }
 
-Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
+Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, const LPWSTR type, LPWSTR data, DWORD dataLengthBytes)
 {
   // NB: We must verify the data, since there's no guarantee that REG_SZ are stored with null terminators.
 
@@ -64,7 +64,7 @@ Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, LPWSTR data, 
   return obj;
 }
 
-Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, DWORD data)
+Napi::Object CreateEntry(const Napi::Env& env, LPWSTR name, const LPWSTR type, DWORD data)
 {
   auto obj = Napi::Object::New(env);
   obj.Set(Napi::String::New(env, "name"), Napi::String::New(env, (char16_t*)name));
@@ -73,7 +73,7 @@ Napi::Object CreateEntry(Napi::Env& env, LPWSTR name, LPWSTR type, DWORD data)
   return obj;
 }
 
-Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
+Napi::Array EnumerateValues(const Napi::Env& env, HKEY hCurrentKey) {
   DWORD cValues, cchMaxValue, cbMaxValueData;
 
   auto retCode = RegQueryInfoKey(
@@ -125,19 +125,19 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
       if (lpType == REG_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(env, achValue, L"REG_SZ", text, cbData);
+        auto obj = CreateEntry(env, achValue, (LPWSTR)L"REG_SZ", text, cbData);
         results.Set(i, obj);
       }
       else if (lpType == REG_EXPAND_SZ)
       {
         auto text = reinterpret_cast<LPWSTR>(buffer.get());
-        auto obj = CreateEntry(env, achValue, L"REG_EXPAND_SZ", text, cbData);
+        auto obj = CreateEntry(env, achValue, (LPWSTR)L"REG_EXPAND_SZ", text, cbData);
         results.Set(i, obj);
       }
       else if (lpType == REG_DWORD)
       {
         assert(cbData == sizeof(DWORD));
-        results.Set(i, CreateEntry(env, achValue, L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
+        results.Set(i, CreateEntry(env, achValue, (LPWSTR)L"REG_DWORD", *reinterpret_cast<DWORD*>(buffer.get())));
       }
     }
     else if (retCode == ERROR_NO_MORE_ITEMS)
@@ -159,7 +159,7 @@ Napi::Array EnumerateValues(Napi::Env& env, HKEY hCurrentKey) {
 
 Napi::Value ReadValues(const Napi::CallbackInfo& info)
 {
-  Napi::Env& env = info.Env();
+  const Napi::Env& env = info.Env();
 
   if (info.Length() < 2)
   {
@@ -219,8 +219,8 @@ Napi::Value ReadValues(const Napi::CallbackInfo& info)
 }
 
 Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
-  Napi::Env& env = info.Env();
-  
+  const Napi::Env& env = info.Env();
+
   auto argCount = info.Length();
   if (argCount != 1 && argCount != 2)
   {
@@ -285,8 +285,8 @@ Napi::Value EnumKeys(const Napi::CallbackInfo& info) {
 
 Napi::Value CreateKey(const Napi::CallbackInfo& info)
 {
-  Napi::Env& env = info.Env();
-  
+  const Napi::Env& env = info.Env();
+
   auto argCount = info.Length();
   if (argCount != 2)
   {
@@ -343,7 +343,7 @@ Napi::Value CreateKey(const Napi::CallbackInfo& info)
 
 Napi::Value SetValue(const Napi::CallbackInfo& info)
 {
-  Napi::Env& env = info.Env();
+  const Napi::Env& env = info.Env();
 
   auto argCount = info.Length();
   if (argCount != 5)
@@ -446,7 +446,7 @@ Napi::Value SetValue(const Napi::CallbackInfo& info)
           datalength);
     }
     else if (wcscmp(valueType, L"REG_DWORD") == 0)
-    {     
+    {
       uint32_t dwordData = info[4].ToNumber().Uint32Value();
       DWORD valueData = static_cast<DWORD>(dwordData);
 
