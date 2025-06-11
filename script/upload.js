@@ -10,5 +10,5 @@ spawnSync(
       (process.platform === 'win32' ? '.cmd' : '')
   ),
   ['--upload-all', process.env.GITHUB_AUTH_TOKEN],
-  { stdio: 'inherit' }
+  { stdio: 'inherit', shell: true }
 )
