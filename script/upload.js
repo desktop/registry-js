@@ -1,6 +1,7 @@
 // to ensure that env not in the CI server log
 
 const path = require('path')
+const fs = require('fs')
 const { spawnSync } = require('child_process')
 
 // Make sure output of the script is logged to the console and also the error is
@@ -13,12 +14,22 @@ if (!process.env.GITHUB_AUTH_TOKEN) {
 }
 
 try {
+  const prebuildPath = path.join(
+    __dirname,
+    '../node_modules/.bin/prebuild' +
+      (process.platform === 'win32' ? '.cmd' : '')
+  )
+
+  // Check if prebuild command exists
+  if (!fs.existsSync(prebuildPath)) {
+    console.error('Prebuild command not found at:', prebuildPath)
+    process.exit(1)
+  }
+
+  console.log('Uploading prebuilds using:', prebuildPath)
+
   const result = spawnSync(
-    path.join(
-      __dirname,
-      '../node_modules/.bin/prebuild' +
-        (process.platform === 'win32' ? '.cmd' : '')
-    ),
+    prebuildPath,
     ['--upload-all', process.env.GITHUB_AUTH_TOKEN],
     { stdio: 'inherit' }
   )
