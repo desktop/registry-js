@@ -27,16 +27,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v2.1.2
         with:
-          node-version: 18
-
-      # This step can be removed as soon as official Windows arm64 builds are published:
-      # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
-      - run: |
-          $NodeVersion = (node --version) -replace '^.'
-          $NodeFallbackVersion = "15.8.0"
-          & .\script\download-node-lib-win-arm64.ps1 $NodeVersion $NodeFallbackVersion
-        name: Install Windows arm64 node.lib
-
+          node-version: 22.14.0
       - name: Install and build dependencies
         run: yarn
       - name: Lint
