@@ -8,12 +8,17 @@ of the form `releases/x.x.x`
 After running commands in 'Publishing to NPM', the release branch should be
 pushed. Now, you need to get it reviewed and merged.
 
-After that, don't forget publish the release on the repo.
+After merging, pushing the tag (via `npm publish`) will trigger CI which creates
+a **draft** GitHub release with prebuilt binaries attached. To finalize:
 
 - Go to https://github.com/desktop/registry-js/releases
-- Click click `Draft a New Release`
-- Fill in form
+- Find the draft release created by CI
+- Review that all assets are present (3 `.tar.gz` files)
 - Hit `Publish release`
+
+> **Note:** Publishing the release makes it immutable — assets and the tag can no
+> longer be modified. If something is wrong, delete the draft and cut a new
+> version.
 
 ## Publishing to NPM
 
