@@ -13,7 +13,7 @@ jobs:
     name: Build
     runs-on: windows-2022
     permissions:
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -46,6 +46,7 @@ jobs:
         run: npm run prebuild-napi-ia32
       - name: Publish
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-        run: yarn upload
+        run: |
+          gh release create ${{ github.ref_name }} prebuilds/*.tar.gz --generate-notes --draft
         env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
